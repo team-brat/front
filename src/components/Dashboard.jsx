@@ -74,7 +74,7 @@ const WarehouseDashboard = () => {
       <header className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-4">
         <div className="flex items-center gap-4">
           <img src="/brat-logo.png" alt="brat logo" className="h-10 drop-shadow-[0_0_8px_#a3e635]" />
-          <h1 className="text-3xl font-bold tracking-tight">Hello, Sana</h1>
+          <h1 className="font-grotesk text-3xl font-bold tracking-tight">Hello, Vijay</h1>
         </div>
         <div className="w-full lg:w-auto">
           <div className="grid grid-cols-1 sm:hidden">
@@ -114,39 +114,39 @@ const WarehouseDashboard = () => {
 
       <div className="grid grid-cols-5 gap-6 mb-8">
         <div className="col-span-1 bg-[#1d2e24] p-4 rounded-2xl shadow-md">
-          <p className="text-sm text-cyan-300">Received Today</p>
-          <p className="text-3xl font-bold mt-1">88.00%</p>
-          <p className="text-sm mt-1 text-lime-400">
+          <p className="text-sm text-cyan-300 font-grotesk">Received Today</p>
+          <p className="text-3xl font-bold mt-1 font-grotesk">88.00%</p>
+          <p className="text-sm mt-1 text-lime-400 font-dm">
             +176 <span className="text-xs">(Total 200)</span>
           </p>
         </div>
 
         <div className="col-span-1 bg-[#1d2e24] p-4 rounded-2xl shadow-md">
-          <p className="text-sm text-green-300">Inspected Today</p>
-          <p className="text-3xl font-bold mt-1">22.72%</p>
-          <p className="text-sm mt-1 text-lime-400">
+          <p className="text-sm text-green-300 font-grotesk">Inspected Today</p>
+          <p className="text-3xl font-bold mt-1 font-grotesk">22.72%</p>
+          <p className="text-sm mt-1 text-lime-400 font-dm">
             +40 <span className="text-xs">(Total 176)</span>
           </p>
         </div>
 
         <div className="col-span-1 bg-[#3a1a1a] p-4 rounded-2xl shadow-md flex flex-col justify-between">
           <div>
-            <p className="text-sm text-red-300">Scheduled Dispatch</p>
-            <p className="text-3xl font-bold mt-2">1000</p>
+            <p className="text-sm text-red-300 font-grotesk">Scheduled Dispatch</p>
+            <p className="text-3xl font-bold mt-2 font-grotesk">1000</p>
           </div>
           <div className="mt-2 border-t border-white/10 pt-2 text-sm space-y-1">
-            <p className="text-red-300">Picking Status: 40.35%</p>
-            <p className="text-yellow-200">Packing Status: 20.5%</p>
-            <p className="text-lime-300">Dispatched Package: 450</p>
+            <p className="text-red-300 font-dm">Picking Status: 40.35%</p>
+            <p className="text-yellow-200 font-dm">Packing Status: 20.5%</p>
+            <p className="text-lime-300 font-dm">Dispatched Package: 450</p>
           </div>
         </div>
 
         <div className="col-span-2 bg-[#1d2e24] p-4 rounded-2xl shadow-md">
-          <p className="text-sm text-yellow-300 mb-2">CAPA</p>
+          <p className="text-sm text-yellow-300 mb-2 font-grotesk">CAPA</p>
           <div className="space-y-2">
             <div>
-              <p className="text-3xl font-semibold">0.22</p>
-              <p className="text-sm text-white/70">Responsible for delivery</p>
+              <p className="text-3xl font-semibold font-grotesk">0.22</p>
+              <p className="text-sm text-white/70 font-dm">Responsible for delivery</p>
             </div>
             <div className="flex -space-x-2">
               <img
@@ -206,8 +206,8 @@ const WarehouseDashboard = () => {
               />
             </div>
             <div className="text-sm text-white/70">
-              <p>Total Number of Workers: <span className="text-white">10</span></p>
-              <p> Dispatched Package / hr: <span className="text-white">2.22</span></p>
+              <p className='font-dm'>Total Number of Workers: <span className="text-white">10</span></p>
+              <p className='font-dm'> Dispatched Package / hr: <span className="text-white">2.22</span></p>
             </div>
           </div>
         </div>
@@ -215,7 +215,7 @@ const WarehouseDashboard = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="bg-[#1d2e24] p-6 rounded-2xl shadow-md">
-          <h2 className="text-xl font-semibold mb-4">Bin Utilization</h2>
+          <h2 className="text-xl font-semibold mb-4 font-grotesk">Bin Utilization</h2>
 
 <div >
   
@@ -238,7 +238,7 @@ const WarehouseDashboard = () => {
   <div className="mt-4 space-y-1">
     {legendLabels.map((label, idx) => (
       <div key={label} className="flex items-center gap-2 text-sm">
-        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: legendColors[idx] }} />
+        <div className="w-3 h-3 rounded-full font-dm" style={{ backgroundColor: legendColors[idx] }} />
         <span>{label}</span>
       </div>
     ))}
@@ -248,7 +248,7 @@ const WarehouseDashboard = () => {
         </div>
 
         <div className="bg-[#1d2e24] p-6 rounded-2xl shadow-md">
-          <h2 className="text-xl font-semibold mb-4">CAPA History</h2>
+          <h2 className="text-xl font-semibold mb-4 font-grotesk">CAPA History</h2>
           <Line data={lineData} />
         </div>
       </div>
