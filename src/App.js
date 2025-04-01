@@ -1,10 +1,11 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import Layout from './components/common/Layout';
-import BinList from './components/bins/BinList';
-import BinDetail from './components/bins/BinDetail';
-import BinForm from './components/bins/BinForm';
+// import Layout from './components/common/Layout';
+// import BinList from './components/bins/BinList';
+// import BinDetail from './components/bins/BinDetail';
+// import BinForm from './components/bins/BinForm';
 import LandingPage from './components/LandingPage';
+import WarehouseDashboard from './components/Dashboard';
 
 function App() {
   return (
@@ -12,7 +13,7 @@ function App() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/supplier" element={<div>Supplier Dashboard</div>} />
-        <Route path="/warehouse" element={<div>Warehouse Operator Dashboard</div>} />
+        <Route path="/warehouse" element={<WarehouseDashboard />} />
         <Route path="/customer" element={<div>Customer Dashboard</div>} />
       </Routes>
     </Router>
