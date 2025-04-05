@@ -7,6 +7,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import LandingPage from './components/LandingPage';
 import WarehouseDashboard from './components/Dashboard';
 import ReceivingPage from './components/Receiving'
+import CreateReceiving from './components/CreateReceiving'
 function App() {
   return (
     <Router>
@@ -15,8 +16,12 @@ function App() {
         <Route path="/supplier" element={<div>Supplier Dashboard</div>} />
         <Route path="/warehouse" element={<WarehouseDashboard />} />
         <Route path="/customer" element={<div>Customer Dashboard</div>} />
+        <Route path="/receiving" element={<ReceivingPage />}>
+          <Route path="create" element={<CreateReceiving />} />
+          {/* <Route path="records" element={<ReceivingRecords />} />
+          <Route path="documents" element={<ReceivingDocuments />} /> */}
+        </Route>
 
-        <Route path="/receiving" element={<ReceivingPage />} />
       </Routes>
     </Router>
   );

@@ -12,7 +12,7 @@ const Header = () => {
 
   const initialTabs = [
     { name: 'Dashboard', href: '/warehouse' },
-    { name: 'Receiving', href: '/receiving' },
+    { name: 'Receiving', href: '/receiving/create' },
     { name: 'TQ', href: '/tq' },
     { name: 'Binning', href: '/binning' },
     { name: 'Dispatch', href: '/dispatch' },
