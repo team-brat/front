@@ -6,7 +6,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 // import BinForm from './components/bins/BinForm';
 import LandingPage from './components/LandingPage';
 import WarehouseDashboard from './components/Dashboard';
-
+import ReceivingPage from './components/Receiving'
 function App() {
   return (
     <Router>
@@ -15,6 +15,8 @@ function App() {
         <Route path="/supplier" element={<div>Supplier Dashboard</div>} />
         <Route path="/warehouse" element={<WarehouseDashboard />} />
         <Route path="/customer" element={<div>Customer Dashboard</div>} />
+
+        <Route path="/receiving" element={<ReceivingPage />} />
       </Routes>
     </Router>
   );
