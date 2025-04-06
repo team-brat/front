@@ -1,0 +1,317 @@
+[
+  {
+    "receivedDate": "2025-01-28",
+    "supplierName": "Fashion World",
+    "supplierNumber": "SUP123",
+    "skuName": "Winter Jacket",
+    "skuNumber": "SKU9876",
+    "barcode": "BC12345678", 
+    "grn": "GRN001"
+  },
+  {
+    "receivedDate": "2025-01-29",
+    "supplierName": "Denim Co",
+    "supplierNumber": "SUP456", 
+    "skuName": "Slim Fit Jeans",
+    "skuNumber": "SKU5432",
+    "barcode": "BC87654321",
+    "grn": "GRN002"
+  },
+  {
+    "receivedDate": "2025-01-30",
+    "supplierName": "Cotton Kings",
+    "supplierNumber": "SUP789",
+    "skuName": "Cotton T-Shirt",
+    "skuNumber": "SKU1234",
+    "barcode": "BC98765432",
+    "grn": "GRN003"
+  },
+  {
+    "receivedDate": "2025-02-01",
+    "supplierName": "Luxury Brands",
+    "supplierNumber": "SUP234",
+    "skuName": "Designer Dress",
+    "skuNumber": "SKU7890",
+    "barcode": "BC23456789",
+    "grn": "GRN004"
+  },
+  {
+    "receivedDate": "2025-02-02",
+    "supplierName": "Sports Wear",
+    "supplierNumber": "SUP567",
+    "skuName": "Athletic Shorts",
+    "skuNumber": "SKU4567",
+    "barcode": "BC34567890",
+    "grn": "GRN005"
+  },
+  {
+    "receivedDate": "2025-02-03",
+    "supplierName": "Fashion Hub",
+    "supplierNumber": "SUP890",
+    "skuName": "Silk Blouse",
+    "skuNumber": "SKU2345",
+    "barcode": "BC45678901",
+    "grn": "GRN006"
+  },
+  {
+    "receivedDate": "2025-02-04",
+    "supplierName": "Casual Wear",
+    "supplierNumber": "SUP345",
+    "skuName": "Cargo Pants",
+    "skuNumber": "SKU8901",
+    "barcode": "BC56789012",
+    "grn": "GRN007"
+  },
+  {
+    "receivedDate": "2025-02-05",
+    "supplierName": "Knit World",
+    "supplierNumber": "SUP678",
+    "skuName": "Wool Sweater",
+    "skuNumber": "SKU3456",
+    "barcode": "BC67890123",
+    "grn": "GRN008"
+  },
+  {
+    "receivedDate": "2025-02-06",
+    "supplierName": "Style Co",
+    "supplierNumber": "SUP901",
+    "skuName": "Leather Jacket",
+    "skuNumber": "SKU9012",
+    "barcode": "BC78901234",
+    "grn": "GRN009"
+  },
+  {
+    "receivedDate": "2025-02-07",
+    "supplierName": "Urban Wear",
+    "supplierNumber": "SUP432",
+    "skuName": "Hoodie",
+    "skuNumber": "SKU5678",
+    "barcode": "BC89012345",
+    "grn": "GRN010"
+  },
+  {
+    "receivedDate": "2025-02-08",
+    "supplierName": "Formal Attire",
+    "supplierNumber": "SUP765",
+    "skuName": "Business Suit",
+    "skuNumber": "SKU0123",
+    "barcode": "BC90123456",
+    "grn": "GRN011"
+  },
+  {
+    "receivedDate": "2025-02-09",
+    "supplierName": "Outdoor Gear",
+    "supplierNumber": "SUP098",
+    "skuName": "Rain Coat",
+    "skuNumber": "SKU6789",
+    "barcode": "BC01234567",
+    "grn": "GRN012"
+  },
+  {
+    "receivedDate": "2025-02-10",
+    "supplierName": "Kids Fashion",
+    "supplierNumber": "SUP321",
+    "skuName": "Children's Dress",
+    "skuNumber": "SKU1357",
+    "barcode": "BC13579246",
+    "grn": "GRN013"
+  },
+  {
+    "receivedDate": "2025-02-11",
+    "supplierName": "Fitness Wear",
+    "supplierNumber": "SUP654",
+    "skuName": "Yoga Pants",
+    "skuNumber": "SKU2468",
+    "barcode": "BC24680135",
+    "grn": "GRN014"
+  },
+  {
+    "receivedDate": "2025-02-12",
+    "supplierName": "Beach Wear",
+    "supplierNumber": "SUP987",
+    "skuName": "Swimsuit",
+    "skuNumber": "SKU3579",
+    "barcode": "BC35791246",
+    "grn": "GRN015"
+  },
+  {
+    "receivedDate": "2025-02-13",
+    "supplierName": "Vintage Fashion",
+    "supplierNumber": "SUP210",
+    "skuName": "Retro Dress",
+    "skuNumber": "SKU4680",
+    "barcode": "BC46802357",
+    "grn": "GRN016"
+  },
+  {
+    "receivedDate": "2025-02-14",
+    "supplierName": "Sock Factory",
+    "supplierNumber": "SUP543",
+    "skuName": "Wool Socks",
+    "skuNumber": "SKU5791",
+    "barcode": "BC57913468",
+    "grn": "GRN017"
+  },
+  {
+    "receivedDate": "2025-02-15",
+    "supplierName": "Accessories Co",
+    "supplierNumber": "SUP876",
+    "skuName": "Scarf Set",
+    "skuNumber": "SKU6802",
+    "barcode": "BC68024579",
+    "grn": "GRN018"
+  },
+  {
+    "receivedDate": "2025-02-16",
+    "supplierName": "Uniform World",
+    "supplierNumber": "SUP109",
+    "skuName": "Work Uniform",
+    "skuNumber": "SKU7913",
+    "barcode": "BC79135680",
+    "grn": "GRN019"
+  },
+  {
+    "receivedDate": "2025-02-17",
+    "supplierName": "Winter Wear",
+    "supplierNumber": "SUP432",
+    "skuName": "Snow Pants",
+    "skuNumber": "SKU8024",
+    "barcode": "BC80246791",
+    "grn": "GRN020"
+  },
+  {
+    "receivedDate": "2025-02-18",
+    "supplierName": "Summer Style",
+    "supplierNumber": "SUP765",
+    "skuName": "Sun Dress",
+    "skuNumber": "SKU9135",
+    "barcode": "BC91357802",
+    "grn": "GRN021"
+  },
+  {
+    "receivedDate": "2025-02-19",
+    "supplierName": "Baby Clothes",
+    "supplierNumber": "SUP098",
+    "skuName": "Baby Onesie",
+    "skuNumber": "SKU0246",
+    "barcode": "BC02468913",
+    "grn": "GRN022"
+  },
+  {
+    "receivedDate": "2025-02-20",
+    "supplierName": "Eco Fashion",
+    "supplierNumber": "SUP321",
+    "skuName": "Organic Cotton Shirt",
+    "skuNumber": "SKU1357",
+    "barcode": "BC13579024",
+    "grn": "GRN023"
+  },
+  {
+    "receivedDate": "2025-02-21",
+    "supplierName": "Work Wear",
+    "supplierNumber": "SUP654",
+    "skuName": "Safety Vest",
+    "skuNumber": "SKU2468",
+    "barcode": "BC24680135",
+    "grn": "GRN024"
+  },
+  {
+    "receivedDate": "2025-02-22",
+    "supplierName": "Sleep Wear",
+    "supplierNumber": "SUP987",
+    "skuName": "Pajama Set",
+    "skuNumber": "SKU3579",
+    "barcode": "BC35791246",
+    "grn": "GRN025"
+  },
+  {
+    "receivedDate": "2025-02-23",
+    "supplierName": "Luxury Knits",
+    "supplierNumber": "SUP210",
+    "skuName": "Cashmere Sweater",
+    "skuNumber": "SKU4680",
+    "barcode": "BC46802357",
+    "grn": "GRN026"
+  },
+  {
+    "receivedDate": "2025-02-24",
+    "supplierName": "Dance Wear",
+    "supplierNumber": "SUP543",
+    "skuName": "Ballet Leotard",
+    "skuNumber": "SKU5791",
+    "barcode": "BC57913468",
+    "grn": "GRN027"
+  },
+  {
+    "receivedDate": "2025-02-25",
+    "supplierName": "Sports Elite",
+    "supplierNumber": "SUP876",
+    "skuName": "Track Suit",
+    "skuNumber": "SKU6802",
+    "barcode": "BC68024579",
+    "grn": "GRN028"
+  },
+  {
+    "receivedDate": "2025-02-26",
+    "supplierName": "Teen Fashion",
+    "supplierNumber": "SUP109",
+    "skuName": "Graphic Tee",
+    "skuNumber": "SKU7913",
+    "barcode": "BC79135680",
+    "grn": "GRN029"
+  },
+  {
+    "receivedDate": "2025-02-27",
+    "supplierName": "Plus Size",
+    "supplierNumber": "SUP432",
+    "skuName": "Maxi Dress",
+    "skuNumber": "SKU8024",
+    "barcode": "BC80246791",
+    "grn": "GRN030"
+  },
+  {
+    "receivedDate": "2025-02-28",
+    "supplierName": "Sustainable Fashion",
+    "supplierNumber": "SUP765",
+    "skuName": "Recycled Denim",
+    "skuNumber": "SKU9135",
+    "barcode": "BC91357802",
+    "grn": "GRN031"
+  },
+  {
+    "receivedDate": "2025-03-01",
+    "supplierName": "Traditional Wear",
+    "supplierNumber": "SUP098",
+    "skuName": "Hanbok Set",
+    "skuNumber": "SKU0246",
+    "barcode": "BC02468913",
+    "grn": "GRN032"
+  },
+  {
+    "receivedDate": "2025-03-02",
+    "supplierName": "Party Wear",
+    "supplierNumber": "SUP321",
+    "skuName": "Sequin Dress",
+    "skuNumber": "SKU1357",
+    "barcode": "BC13579024",
+    "grn": "GRN033"
+  },
+  {
+    "receivedDate": "2025-03-03",
+    "supplierName": "Maternity Wear",
+    "supplierNumber": "SUP654",
+    "skuName": "Maternity Dress",
+    "skuNumber": "SKU2468",
+    "barcode": "BC24680135",
+    "grn": "GRN034"
+  },
+  {
+    "receivedDate": "2025-03-04",
+    "supplierName": "Designer Boutique",
+    "supplierNumber": "SUP987",
+    "skuName": "Evening Gown",
+    "skuNumber": "SKU3579",
+    "barcode": "BC35791246",
+    "grn": "GRN035"
+  }
+]

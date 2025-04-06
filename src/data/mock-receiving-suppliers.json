@@ -1,0 +1,290 @@
+[
+    {
+      "supplierName": "Fashion World",
+      "supplierNumber": "SUP123",
+      "skuName": "Winter Jacket",
+      "skuNumber": "SKU9876",
+      "barcode": "BC12345678",
+      "contact": "010-1111-1111",
+      "inbound": [
+        { "date": "2025-01-20", "sku": "SKU9876", "qty": 150 },
+        { "date": "2025-01-22", "sku": "SKU9876", "qty": 50 },
+        { "date": "2025-01-25", "sku": "SKU9876", "qty": 10 }
+      ],
+      "outbound": [
+        { "date": "2025-02-05", "sku": "SKU9876", "qty": 50 },
+        { "date": "2025-02-05", "sku": "SKU9876", "qty": 20 }
+      ]
+    },
+    {
+      "supplierName": "Denim Co",
+      "supplierNumber": "SUP456", 
+      "skuName": "Slim Fit Jeans",
+      "skuNumber": "SKU5432",
+      "barcode": "BC87654321",
+      "contact": "010-2222-2222",
+      "inbound": [
+        { "date": "2025-01-21", "sku": "SKU5432", "qty": 200 },
+        { "date": "2025-01-21", "sku": "SKU5432", "qty": 100 }
+      ],
+      "outbound": [
+        { "date": "2025-02-06", "sku": "SKU5432", "qty": 80 }
+      ]
+    },
+    {
+      "supplierName": "Cotton Kings",
+      "supplierNumber": "SUP789",
+      "skuName": "Cotton T-Shirt",
+      "skuNumber": "SKU1234",
+      "barcode": "BC98765432",
+      "contact": "010-3333-3333",
+      "inbound": [
+        { "date": "2025-01-22", "sku": "SKU1234", "qty": 300 }
+      ],
+      "outbound": [
+        { "date": "2025-02-07", "sku": "SKU1234", "qty": 120 }
+      ]
+    },
+    {
+      "supplierName": "Luxury Brands",
+      "supplierNumber": "SUP234",
+      "skuName": "Designer Dress",
+      "skuNumber": "SKU7890",
+      "barcode": "BC23456789",
+      "contact": "010-4444-4444",
+      "inbound": [
+        { "date": "2025-01-23", "sku": "SKU7890", "qty": 80 }
+      ],
+      "outbound": [
+        { "date": "2025-02-08", "sku": "SKU7890", "qty": 30 }
+      ]
+    },
+    {
+      "supplierName": "Sports Wear",
+      "supplierNumber": "SUP567",
+      "skuName": "Athletic Shorts",
+      "skuNumber": "SKU4567",
+      "barcode": "BC34567890",
+      "contact": "010-5555-5555",
+      "inbound": [
+        { "date": "2025-01-24", "sku": "SKU4567", "qty": 250 }
+      ],
+      "outbound": [
+        { "date": "2025-02-09", "sku": "SKU4567", "qty": 100 }
+      ]
+    },
+    {
+      "supplierName": "Fashion Hub",
+      "supplierNumber": "SUP890",
+      "skuName": "Silk Blouse",
+      "skuNumber": "SKU2345",
+      "barcode": "BC45678901",
+      "contact": "010-6666-6666",
+      "inbound": [
+        { "date": "2025-01-25", "sku": "SKU2345", "qty": 120 },
+        { "date": "2025-01-29", "sku": "SKU2345", "qty": 100 },
+        { "date": "2025-02-25", "sku": "SKU2345", "qty": 220 }
+      ],
+      "outbound": [
+        { "date": "2025-02-10", "sku": "SKU2345", "qty": 45 },
+        { "date": "2025-02-12", "sku": "SKU2345", "qty": 55 },
+        { "date": "2025-05-10", "sku": "SKU2345", "qty": 145 }
+      ]
+    },
+    {
+      "supplierName": "Casual Wear",
+      "supplierNumber": "SUP345",
+      "skuName": "Cargo Pants",
+      "skuNumber": "SKU8901",
+      "barcode": "BC56789012",
+      "contact": "010-7777-7777",
+      "inbound": [
+        { "date": "2025-01-26", "sku": "SKU8901", "qty": 180 }
+      ],
+      "outbound": [
+        { "date": "2025-02-11", "sku": "SKU8901", "qty": 70 }
+      ]
+    },
+    {
+      "supplierName": "Knit World",
+      "supplierNumber": "SUP678",
+      "skuName": "Wool Sweater",
+      "skuNumber": "SKU3456",
+      "barcode": "BC67890123",
+      "contact": "010-8888-8888",
+      "inbound": [
+        { "date": "2025-01-27", "sku": "SKU3456", "qty": 160 }
+      ],
+      "outbound": [
+        { "date": "2025-02-12", "sku": "SKU3456", "qty": 60 }
+      ]
+    },
+    {
+      "supplierName": "Style Co",
+      "supplierNumber": "SUP901",
+      "skuName": "Leather Jacket",
+      "skuNumber": "SKU9012",
+      "barcode": "BC78901234",
+      "contact": "010-9999-9999",
+      "inbound": [
+        { "date": "2025-01-28", "sku": "SKU9012", "qty": 90 }
+      ],
+      "outbound": [
+        { "date": "2025-02-13", "sku": "SKU9012", "qty": 35 }
+      ]
+    },
+    {
+      "supplierName": "Urban Wear",
+      "supplierNumber": "SUP432",
+      "skuName": "Hoodie",
+      "skuNumber": "SKU5678",
+      "barcode": "BC89012345",
+      "contact": "010-1234-5678",
+      "inbound": [
+        { "date": "2025-01-29", "sku": "SKU5678", "qty": 220 }
+      ],
+      "outbound": [
+        { "date": "2025-02-14", "sku": "SKU5678", "qty": 85 }
+      ]
+    },
+    {
+      "supplierName": "Formal Attire",
+      "supplierNumber": "SUP765",
+      "skuName": "Business Suit",
+      "skuNumber": "SKU0123",
+      "barcode": "BC90123456",
+      "contact": "010-2345-6789",
+      "inbound": [
+        { "date": "2025-01-30", "sku": "SKU0123", "qty": 70 }
+      ],
+      "outbound": [
+        { "date": "2025-02-15", "sku": "SKU0123", "qty": 25 }
+      ]
+    },
+    {
+      "supplierName": "Outdoor Gear",
+      "supplierNumber": "SUP098",
+      "skuName": "Rain Coat",
+      "skuNumber": "SKU6789",
+      "barcode": "BC01234567",
+      "contact": "010-3456-7890",
+      "inbound": [
+        { "date": "2025-01-31", "sku": "SKU6789", "qty": 130 }
+      ],
+      "outbound": [
+        { "date": "2025-02-16", "sku": "SKU6789", "qty": 50 }
+      ]
+    },
+    {
+      "supplierName": "Kids Fashion",
+      "supplierNumber": "SUP321",
+      "skuName": "Children's Dress",
+      "skuNumber": "SKU1357",
+      "barcode": "BC13579246",
+      "contact": "010-4567-8901",
+      "inbound": [
+        { "date": "2025-02-01", "sku": "SKU1357", "qty": 280 }
+      ],
+      "outbound": [
+        { "date": "2025-02-17", "sku": "SKU1357", "qty": 110 }
+      ]
+    },
+    {
+      "supplierName": "Fitness Wear",
+      "supplierNumber": "SUP654",
+      "skuName": "Yoga Pants",
+      "skuNumber": "SKU2468",
+      "barcode": "BC24680135",
+      "contact": "010-5678-9012",
+      "inbound": [
+        { "date": "2025-02-02", "sku": "SKU2468", "qty": 240 }
+      ],
+      "outbound": [
+        { "date": "2025-02-18", "sku": "SKU2468", "qty": 95 }
+      ]
+    },
+    {
+      "supplierName": "Beach Wear",
+      "supplierNumber": "SUP987",
+      "skuName": "Swimsuit",
+      "skuNumber": "SKU3579",
+      "barcode": "BC35791246",
+      "contact": "010-6789-0123",
+      "inbound": [
+        { "date": "2025-02-03", "sku": "SKU3579", "qty": 190 }
+      ],
+      "outbound": [
+        { "date": "2025-02-19", "sku": "SKU3579", "qty": 75 }
+      ]
+    },
+    {
+      "supplierName": "Vintage Fashion",
+      "supplierNumber": "SUP210",
+      "skuName": "Retro Dress",
+      "skuNumber": "SKU4680",
+      "barcode": "BC46802357",
+      "contact": "010-7890-1234",
+      "inbound": [
+        { "date": "2025-02-04", "sku": "SKU4680", "qty": 110 }
+      ],
+      "outbound": [
+        { "date": "2025-02-20", "sku": "SKU4680", "qty": 40 }
+      ]
+    },
+    {
+      "supplierName": "Sock Factory",
+      "supplierNumber": "SUP543",
+      "skuName": "Wool Socks",
+      "skuNumber": "SKU5791",
+      "barcode": "BC57913468",
+      "contact": "010-8901-2345",
+      "inbound": [
+        { "date": "2025-02-05", "sku": "SKU5791", "qty": 400 }
+      ],
+      "outbound": [
+        { "date": "2025-02-21", "sku": "SKU5791", "qty": 160 }
+      ]
+    },
+    {
+      "supplierName": "Accessories Co",
+      "supplierNumber": "SUP876",
+      "skuName": "Scarf Set",
+      "skuNumber": "SKU6802",
+      "barcode": "BC68024579",
+      "contact": "010-9012-3456",
+      "inbound": [
+        { "date": "2025-02-06", "sku": "SKU6802", "qty": 140 }
+      ],
+      "outbound": [
+        { "date": "2025-02-22", "sku": "SKU6802", "qty": 55 }
+      ]
+    },
+    {
+      "supplierName": "Uniform World",
+      "supplierNumber": "SUP109",
+      "skuName": "Work Uniform",
+      "skuNumber": "SKU7913",
+      "barcode": "BC79135680",
+      "contact": "010-0123-4567",
+      "inbound": [
+        { "date": "2025-02-07", "sku": "SKU7913", "qty": 260 }
+      ],
+      "outbound": [
+        { "date": "2025-02-23", "sku": "SKU7913", "qty": 100 }
+      ]
+    },
+    {
+      "supplierName": "Winter Wear",
+      "supplierNumber": "SUP432",
+      "skuName": "Snow Pants",
+      "skuNumber": "SKU8024",
+      "barcode": "BC80246791",
+      "contact": "010-1357-2468",
+      "inbound": [
+        { "date": "2025-02-08", "sku": "SKU8024", "qty": 170 }
+      ],
+      "outbound": [
+        { "date": "2025-02-24", "sku": "SKU8024", "qty": 65 }
+      ]
+    }
+]

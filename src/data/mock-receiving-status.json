@@ -1,0 +1,86 @@
+[
+  {
+    "date": "2025-01-28",
+    "supplierNumber": "SUP123",
+    "skuNumber": "SKU9876",
+    "quantity": 120,
+    "status": "In progress"
+  },
+  {
+    "date": "2025-01-28", 
+    "supplierNumber": "SUP456",
+    "skuNumber": "SKU5432",
+    "quantity": 80,
+    "status": "In progress"
+  },
+  {
+    "date": "2025-01-28",
+    "supplierNumber": "SUP789", 
+    "skuNumber": "SKU1234",
+    "quantity": 95,
+    "status": "Rejected"
+  },
+  {
+    "date": "2025-01-29",
+    "supplierNumber": "SUP234",
+    "skuNumber": "SKU7890",
+    "quantity": 150,
+    "status": "In progress"
+  },
+  {
+    "date": "2025-01-29",
+    "supplierNumber": "SUP567",
+    "skuNumber": "SKU4567",
+    "quantity": 200,
+    "status": "In progress"
+  },
+  {
+    "date": "2025-01-29",
+    "supplierNumber": "SUP890",
+    "skuNumber": "SKU2345",
+    "quantity": 75,
+    "status": "Completed"
+  },
+  {
+    "date": "2025-01-30",
+    "supplierNumber": "SUP345",
+    "skuNumber": "SKU8901",
+    "quantity": 100,
+    "status": "Completed"
+  },
+  {
+    "date": "2025-01-30",
+    "supplierNumber": "SUP678",
+    "skuNumber": "SKU3456",
+    "quantity": 60,
+    "status": "Rejected"
+  },
+  {
+    "date": "2025-01-30",
+    "supplierNumber": "SUP901",
+    "skuNumber": "SKU6789",
+    "quantity": 90,
+    "status": "In progress"
+  },
+  {
+    "date": "2025-02-01",
+    "supplierNumber": "SUP432",
+    "skuNumber": "SKU9012",
+    "quantity": 180,
+    "status": "Completed"
+  },
+  {
+    "date": "2025-02-01",
+    "supplierNumber": "SUP765",
+    "skuNumber": "SKU5678",
+    "quantity": 120,
+    "status": "Completed"
+  },
+  {
+    "date": "2025-02-01",
+    "supplierNumber": "SUP098",
+    "skuNumber": "SKU1234",
+    "quantity": 85,
+    "status": "Rejected"
+  }
+]

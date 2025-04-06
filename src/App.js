@@ -7,7 +7,12 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import LandingPage from './components/LandingPage';
 import WarehouseDashboard from './components/Dashboard';
 import ReceivingPage from './components/Receiving'
-import CreateReceiving from './components/CreateReceiving'
+import CreateReceiving from './components/Receiving/CreateReceiving';
+import ReceivingRecords from './components/Receiving/ReceivingRecords';
+import SupplierDetail from './components/Receiving/SupplierDetail';
+import DocVerification from './components/Receiving/DocumentVerification';
+import ReceivingStatus from './components/Receiving/ReceivingStatus';
+
 function App() {
   return (
     <Router>
@@ -18,8 +23,10 @@ function App() {
         <Route path="/customer" element={<div>Customer Dashboard</div>} />
         <Route path="/receiving" element={<ReceivingPage />}>
           <Route path="create" element={<CreateReceiving />} />
-          {/* <Route path="records" element={<ReceivingRecords />} />
-          <Route path="documents" element={<ReceivingDocuments />} /> */}
+          <Route path="records" element={<ReceivingRecords />} />
+          <Route path="supplier" element={<SupplierDetail />} />
+          <Route path="documents" element={<DocVerification />} />
+          <Route path="status" element={<ReceivingStatus />} />
         </Route>
 
       </Routes>
