@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import mockData from '../../data/mock-receiving-records.json';
+import mockData from '../../sample-data/mock-receiving-records.json';
 
 const ReceivingRecords = () => {
   const [query, setQuery] = useState('');

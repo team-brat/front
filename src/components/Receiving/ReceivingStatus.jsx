@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import mockStatus from '../../data/mock-receiving-status.json';
+import mockStatus from '../../sample-data/mock-receiving-status.json';
 
 const statusColors = {
   'In progress': 'text-yellow-300',

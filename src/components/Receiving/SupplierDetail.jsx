@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import mockData from '../../data/mock-receiving-suppliers.json';
+import mockData from '../../sample-data/mock-receiving-suppliers.json';
 
 const mockSuppliers = mockData;
 
