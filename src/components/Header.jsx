@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ChevronDownIcon } from '@heroicons/react/16/solid';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -9,6 +9,7 @@ function classNames(...classes) {
 const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [isOpen, setIsOpen] = useState(false);
 
   const initialTabs = [
     { name: 'Dashboard', href: '/warehouse' },
@@ -38,12 +39,10 @@ const Header = () => {
     );
 
     navigate(selected.href);
+    setIsOpen(false);
   };
 
-  const handleDropdownChange = (e) => {
-    const selectedTab = tabsState.find((tab) => tab.name === e.target.value);
-    if (selectedTab) handleTabClick(selectedTab.name);
-  };
+  const currentTab = tabsState.find(tab => tab.current);
 
   return (
     <header className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-4">
@@ -54,22 +53,38 @@ const Header = () => {
 
       {/* Tabs Section */}
       <div className="w-full lg:w-auto">
-        {/* Mobile Dropdown */}
-        <div className="grid grid-cols-1 sm:hidden relative">
-          <select
-            value={tabsState.find((tab) => tab.current)?.name}
-            onChange={handleDropdownChange}
-            aria-label="Select a tab"
-            className="w-full appearance-none rounded-md bg-white py-2 pl-3 pr-8 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-lime-600"
-          >
-            {tabsState.map((tab) => (
-              <option key={tab.name}>{tab.name}</option>
-            ))}
-          </select>
-          <ChevronDownIcon
-            aria-hidden="true"
-            className="pointer-events-none -ml-8 self-center justify-self-end fill-gray-500"
-          />
+        {/* Mobile Current Tab */}
+        <div className="sm:hidden relative">
+          <div className="bg-[#23352b] p-1 rounded-full shadow-inner border border-lime-500/20">
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="w-full flex items-center justify-between bg-lime-300 text-gray-900 shadow-lg rounded-full px-8 py-2.5 text-sm font-semibold"
+            >
+              {currentTab?.name}
+              <ChevronDownIcon 
+                className={`w-5 h-5 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+              />
+            </button>
+          </div>
+          
+          {isOpen && (
+            <div className="absolute top-full left-0 right-0 mt-2 bg-[#23352b] rounded-xl overflow-hidden z-50 shadow-lg border border-lime-500/20">
+              {tabsState.map((tab) => (
+                <button
+                  key={tab.name}
+                  onClick={() => handleTabClick(tab.name)}
+                  className={classNames(
+                    tab.current
+                      ? 'bg-lime-300 text-gray-900'
+                      : 'text-lime-100 hover:bg-lime-400/20 hover:text-lime-300',
+                    'w-full text-left px-6 py-3 text-sm font-semibold transition-all duration-200 ease-in-out'
+                  )}
+                >
+                  {tab.name}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Desktop Tabs */}
