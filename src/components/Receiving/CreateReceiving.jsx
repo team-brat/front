@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 
 const CreateReceiving = () => {
   const [formData, setFormData] = useState({});
+  const [formErrors, setFormErrors] = useState({});
   const [attachments, setAttachments] = useState({
     invoice: null,
     bill_of_entry: null,
@@ -19,7 +20,7 @@ const CreateReceiving = () => {
     if (e.target.files.length > 0) {
       const file = e.target.files[0];
       const reader = new FileReader();
-      
+
       reader.onload = () => {
         const base64Content = reader.result.split(',')[1];
         setAttachments(prev => ({
@@ -31,13 +32,34 @@ const CreateReceiving = () => {
           }
         }));
       };
-      
+
       reader.readAsDataURL(file);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const requiredFields = [
+      'scheduledDate', 'supplierName', 'supplierNumber',
+      'skuName', 'skuNumber', 'barcode',
+      'length', 'width', 'height', 'depth', 'volume', 'weight',
+      'shipmentNumber', 'truckNumber', 'driverContact'
+    ];
+
+    const errors = {};
+    requiredFields.forEach((field) => {
+      if (!formData[field]) {
+        errors[field] = 'Required';
+      }
+    });
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      return;
+    } else {
+      setFormErrors({});
+    }
 
     const API_URL = "https://zf42ytba0m.execute-api.us-east-2.amazonaws.com/dev";
     const RECEIVING_ORDERS_ENDPOINT = `${API_URL}/receiving-orders`;
@@ -55,12 +77,12 @@ const CreateReceiving = () => {
         sku_name: formData.skuName,
         sku_number: formData.skuNumber,
         serial_or_barcode: formData.barcode,
-        length: parseFloat(formData.length) || 0,
-        width: parseFloat(formData.width) || 0,
-        height: parseFloat(formData.height) || 0,
-        depth: parseFloat(formData.depth) || 0,
-        volume: parseFloat(formData.volume) || 0,
-        weight: parseFloat(formData.weight) || 0
+        length: parseFloat(formData.length),
+        width: parseFloat(formData.width),
+        height: parseFloat(formData.height),
+        depth: parseFloat(formData.depth),
+        volume: parseFloat(formData.volume),
+        weight: parseFloat(formData.weight)
       },
       shipment_information: {
         shipment_number: formData.shipmentNumber,
@@ -83,7 +105,7 @@ const CreateReceiving = () => {
       });
 
       console.log('Response status:', response.status);
-      
+
       if (response.status === 201) {
         const responseData = await response.json();
         console.log('Success! Order created:', responseData);
@@ -103,33 +125,57 @@ const CreateReceiving = () => {
         <h1 className="text-3xl font-bold mb-8 tracking-tight font-grotesk">Creating Receiving</h1>
         <h2 className="text-xl font-semibold mb-4">Request Details</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <input className="input" type="date" name="scheduledDate" onChange={handleChange} />
-          <input className="input" name="supplierName" placeholder="Supplier Name" onChange={handleChange} />
-          <input className="input" name="supplierNumber" placeholder="Supplier #" onChange={handleChange} />
-          <input className="input" name="skuName" placeholder="SKU Name" onChange={handleChange} />
-          <input className="input" name="skuNumber" placeholder="SKU #" onChange={handleChange} />
-          <input className="input" name="barcode" placeholder="Serial or Barcode #" onChange={handleChange} />
+          <div className="space-y-1">
+            <input className={`input ${formErrors['scheduledDate'] ? 'border-red-500' : ''}`} type="date" name="scheduledDate" onChange={handleChange} />
+            {formErrors['scheduledDate'] && <p className="text-red-400 text-xs">Required</p>}
+          </div>
+          {['supplierName', 'supplierNumber', 'skuName', 'skuNumber', 'barcode'].map((field) => (
+            <div key={field} className="space-y-1">
+              <input
+                className={`input ${formErrors[field] ? 'border-red-500' : ''}`}
+                name={field}
+                placeholder={field.replace(/([A-Z])/g, ' $1')}
+                onChange={handleChange}
+              />
+              {formErrors[field] && <p className="text-red-400 text-xs">Required</p>}
+            </div>
+          ))}
         </div>
       </div>
 
       <div>
         <h2 className="text-xl font-semibold mb-4">SKU Information</h2>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          <input className="input" name="length" type="number" step="0.1" placeholder="Length" onChange={handleChange} />
-          <input className="input" name="width" type="number" step="0.1" placeholder="Width" onChange={handleChange} />
-          <input className="input" name="height" type="number" step="0.1" placeholder="Height" onChange={handleChange} />
-          <input className="input" name="depth" type="number" step="0.1" placeholder="Depth" onChange={handleChange} />
-          <input className="input" name="volume" type="number" step="0.1" placeholder="Volume" onChange={handleChange} />
-          <input className="input" name="weight" type="number" step="0.1" placeholder="Weight" onChange={handleChange} />
+          {['length', 'width', 'height', 'depth', 'volume', 'weight'].map((field) => (
+            <div key={field} className="space-y-1">
+              <input
+                className={`input ${formErrors[field] ? 'border-red-500' : ''}`}
+                name={field}
+                type="number"
+                step="0.1"
+                placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
+                onChange={handleChange}
+              />
+              {formErrors[field] && <p className="text-red-400 text-xs">Required</p>}
+            </div>
+          ))}
         </div>
       </div>
 
       <div>
         <h2 className="text-xl font-semibold mb-4">Shipment Information</h2>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          <input className="input" name="shipmentNumber" placeholder="Shipment #" onChange={handleChange} />
-          <input className="input" name="truckNumber" placeholder="Truck #" onChange={handleChange} />
-          <input className="input" name="driverContact" placeholder="Driver Contact Info" onChange={handleChange} />
+          {['shipmentNumber', 'truckNumber', 'driverContact'].map((field) => (
+            <div key={field} className="space-y-1">
+              <input
+                className={`input ${formErrors[field] ? 'border-red-500' : ''}`}
+                name={field}
+                placeholder={field.replace(/([A-Z])/g, ' $1')}
+                onChange={handleChange}
+              />
+              {formErrors[field] && <p className="text-red-400 text-xs">Required</p>}
+            </div>
+          ))}
         </div>
       </div>
 
@@ -145,7 +191,7 @@ const CreateReceiving = () => {
                 type="file"
                 accept=".pdf,.doc,.docx"
                 onChange={(e) => handleFileChange(e, key)}
-                className="block w-full md:w-auto text-sm text-white file:mr-3 file:py-1 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-[#365c46] file:text-white hover:file:bg-[#3e6e53] file:content-['Upload_File']"
+                className="block w-full md:w-auto text-sm text-white file:mr-3 file:py-1 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-[#365c46] file:text-white hover:file:bg-[#3e6e53]"
                 lang="en"
               />
             </div>
@@ -170,6 +216,7 @@ const CreateReceiving = () => {
           border: 1px solid #334d3d;
           color: white;
           font-size: 0.875rem;
+          width: 100%;
         }
         .input::placeholder {
           color: #9ca3af;
