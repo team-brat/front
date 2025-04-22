@@ -1,18 +1,17 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-// import Layout from './components/common/Layout';
-// import BinList from './components/bins/BinList';
-// import BinDetail from './components/bins/BinDetail';
-// import BinForm from './components/bins/BinForm';
-import LandingPage from './components/LandingPage';
-import WarehouseDashboard from './components/Dashboard';
-import ReceivingPage from './components/Receiving'
-import CreateReceiving from './components/Receiving/CreateReceiving';
-import ReceivingRecords from './components/Receiving/ReceivingRecords';
-import SupplierDetail from './components/Receiving/SupplierDetail';
-import DocVerification from './components/Receiving/DocumentVerification';
-import ReceivingStatus from './components/Receiving/ReceivingStatus';
+import LandingPage from './Landing/LandingPage';
+import WarehouseDashboard from './Dashboard/Dashboard';
 
+import ReceivingTemplate from './Receiving/ReceivingTemplate'
+import CreateReceiving from './Receiving/CreateReceiving';
+import ReceivingRecords from './Receiving/ReceivingRecords';
+import SupplierDetail from './Receiving/SupplierDetail';
+import DocVerification from './Receiving/DocumentVerification';
+import ReceivingStatus from './Receiving/ReceivingStatus';
+
+import TQTemplate from './TQ/TQTemplate';
+import InspectionRequest from './TQ/InspectionRequest';
 function App() {
   return (
     <Router>
@@ -21,12 +20,15 @@ function App() {
         <Route path="/supplier" element={<div>Supplier Dashboard</div>} />
         <Route path="/warehouse" element={<WarehouseDashboard />} />
         <Route path="/customer" element={<div>Customer Dashboard</div>} />
-        <Route path="/receiving" element={<ReceivingPage />}>
+        <Route path="/receiving" element={<ReceivingTemplate />}>
           <Route path="create" element={<CreateReceiving />} />
           <Route path="records" element={<ReceivingRecords />} />
           <Route path="supplier" element={<SupplierDetail />} />
           <Route path="documents" element={<DocVerification />} />
           <Route path="status" element={<ReceivingStatus />} />
+        </Route>
+        <Route path="/tq" element={<TQTemplate />}>
+          <Route path="inspection" element={<InspectionRequest />} />
         </Route>
 
       </Routes>

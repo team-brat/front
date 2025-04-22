@@ -10,7 +10,7 @@ import {
   Legend,
 } from 'chart.js';
 import { Line, Pie } from 'react-chartjs-2';
-import Header from './Header';
+import Header from '../components/Layout/Header';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, ArcElement, Tooltip, Legend);
 
