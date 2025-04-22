@@ -28,7 +28,7 @@ function App() {
           <Route path="status" element={<ReceivingStatus />} />
         </Route>
         <Route path="/tq" element={<TQTemplate />}>
-          <Route path="inspection" element={<InspectionRequest />} />
+          <Route path="inspection-request" element={<InspectionRequest />} />
         </Route>
 
       </Routes>

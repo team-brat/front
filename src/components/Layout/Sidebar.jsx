@@ -2,18 +2,9 @@ import React, { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { ChevronDownIcon } from '@heroicons/react/16/solid';
 
-const Sidebar = () => {
+const Sidebar = ({tabs}) => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
-
-  const tabs = [
-    { name: 'Create Receiving', href: '/receiving/create' },
-    { name: 'Receiving Records', href: '/receiving/records' },
-    { name: 'Supplier Details', href: '/receiving/supplier' },
-    { name: 'Doc Verification', href: '/receiving/documents' },
-    { name: 'Receiving Status', href: '/receiving/status' },
-  ];
-
   const currentTab = tabs.find(tab => tab.href === location.pathname);
 
   return (

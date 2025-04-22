@@ -14,7 +14,6 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen flex flex-col justify-center bg-[#0f1f17] relative">
-      {/* Enhanced Background Gradient and Glow */}
       <div className="absolute inset-0 -z-10 bg-gradient-to-br from-[#0f1f17] via-[#1b3d2c] to-[#28543c]" />
       <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_20%_30%,rgba(144,255,144,0.05),transparent_25%),radial-gradient(circle_at_80%_70%,rgba(0,255,128,0.04),transparent_35%)]" />
 

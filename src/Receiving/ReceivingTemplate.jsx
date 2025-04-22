@@ -9,7 +9,13 @@ const ReceivingTemplate = () => {
       
       <Header />
       <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
-        <Sidebar />
+        <Sidebar tabs={[
+          { name: 'Create Receiving', href: '/receiving/create' },
+          { name: 'Receiving Records', href: '/receiving/records' },
+          { name: 'Supplier Details', href: '/receiving/supplier' },
+          { name: 'Doc Verification', href: '/receiving/documents' },
+          { name: 'Receiving Status', href: '/receiving/status' },
+        ]} />
         <div className="col-span-4">
           <Outlet />
         </div>

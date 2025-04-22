@@ -67,7 +67,7 @@ const BinList = () => {
       </div>
 
       {/* 필터 */}
-      <div className="bg-white p-4 rounded shadow mb-6">
+      <div className="bg-[#1d2e24] p-4 rounded shadow mb-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -116,11 +116,11 @@ const BinList = () => {
           <p className="mt-2">로딩 중...</p>
         </div>
       ) : bins.length === 0 ? (
-        <div className="bg-white p-8 rounded shadow text-center">
+        <div className="bg-[#1d2e24] p-8 rounded shadow text-center">
           <p className="text-gray-500">빈 데이터가 없습니다.</p>
         </div>
       ) : (
-        <div className="bg-white rounded shadow overflow-x-auto">
+        <div className="bg-[#1d2e24] rounded shadow overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
@@ -141,7 +141,7 @@ const BinList = () => {
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-[#1d2e24] divide-y divide-gray-200">
               {bins.map((bin) => (
                 <tr key={bin.bin_id}>
                   <td className="px-6 py-4 whitespace-nowrap">

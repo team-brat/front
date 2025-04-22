@@ -14,7 +14,7 @@ const Header = () => {
   const initialTabs = [
     { name: 'Dashboard', href: '/warehouse' },
     { name: 'Receiving', href: '/receiving/create' },
-    { name: 'TQ', href: '/tq' },
+    { name: 'TQ', href: '/tq/inspection-request' },
     { name: 'Binning', href: '/binning' },
     { name: 'Dispatch', href: '/dispatch' },
     { name: 'SKU', href: '/sku' },

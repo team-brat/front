@@ -98,7 +98,7 @@ const BinForm = () => {
           <p className="mt-2">로딩 중...</p>
         </div>
       ) : (
-        <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow">
+        <form onSubmit={handleSubmit} className="bg-[#1d2e24] p-6 rounded shadow">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* 구역 */}
             <div>
