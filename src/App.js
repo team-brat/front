@@ -1,6 +1,8 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import LandingPage from './Landing/LandingPage';
+import LoginPage from './Auth/Login';
+import SigninPage from './Auth/Signin';
 import WarehouseDashboard from './Dashboard/Dashboard';
 
 import ReceivingTemplate from './Receiving/ReceivingTemplate'
@@ -17,6 +19,8 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signin" element={<SigninPage />} />
         <Route path="/supplier" element={<div>Supplier Dashboard</div>} />
         <Route path="/warehouse" element={<WarehouseDashboard />} />
         <Route path="/customer" element={<div>Customer Dashboard</div>} />

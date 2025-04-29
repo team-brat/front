@@ -25,23 +25,24 @@ export default function LandingPage() {
               src="/brat-logo.png"
               alt="brat logo"
             />
-            <div className="mb-6">
-              <a href="#" className="inline-flex space-x-4">
-                <span className="font-dm rounded-full bg-lime-500/20 px-3 py-1 text-sm font-semibold text-lime-400 ring-1 ring-inset ring-lime-400/30 shadow-md">
-                  Warehouse Roles
-                </span>
-                <span className="inline-flex items-center space-x-2 text-sm font-medium text-lime-200">
-                  <text className='font-dm'>Select below</text>
-                  <ChevronDownIcon className="w-5 h-5 text-lime-200" aria-hidden="true" />
-                </span>
-              </a>
-            </div>
+            
             <h1 className="text-5xl font-bold tracking-tight text-white sm:text-6xl mb-6 font-grotesk">
               Warehouse Dashboard Platform
             </h1>
             <p className="text-lg text-gray-300 pl-1 font-dm">
-              Choose your role to continue
+              Log In or Sign Up to continue
             </p>
+            <div className="mt-6">
+              <div className="inline-flex space-x-4">
+                <a href="/login" className="font-dm rounded-full bg-lime-500/20 px-5 py-1 text-md font-semibold text-lime-400 ring-1 ring-inset ring-lime-400/30 shadow-md">
+                  Log In
+                </a>
+                <a href="/signin" className="inline-flex items-center space-x-2 text-sm font-medium text-lime-200">
+                  <text className='font-dm'>Sign Up</text>
+                  <ChevronRightIcon className="w-5 h-5 text-lime-200" aria-hidden="true" />
+                </a>
+              </div>
+            </div>
           </div>
 
           {/* Role Cards */}
@@ -49,7 +50,7 @@ export default function LandingPage() {
             {roles.map((role) => (
               <div
                 key={role.name}
-                onClick={() => navigate(role.href)}
+                // onClick={() => navigate(role.href)}
                 className="relative w-full h-80 cursor-pointer overflow-hidden rounded-[30%_5%_30%_5%] shadow-xl group transform transition-transform duration-300 hover:scale-105 hover:shadow-[0_0_25px_#a3e635]"
               >
                 <img
