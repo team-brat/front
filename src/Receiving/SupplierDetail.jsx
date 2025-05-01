@@ -1,13 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
+import { UserAuthContext } from '../App'; // Import the context
 import mockData from '../sample-data/mock-receiving-suppliers.json';
 
 const mockSuppliers = mockData;
 
 const SupplierDetails = () => {
+  const { userAuth } = useContext(UserAuthContext);
   const [isEditing, setIsEditing] = useState(false);
   const [info, setInfo] = useState(null);
   const [query, setQuery] = useState('');
   const [suppliers, setSuppliers] = useState(mockSuppliers);
+
+  useEffect(() => {
+    if (userAuth === 'supplier') {
+      setInfo(mockSuppliers[0]);
+    }
+  }, [userAuth]);
 
   const handleChange = (e) => {
     setInfo({ ...info, [e.target.name]: e.target.value });
@@ -105,28 +113,32 @@ const SupplierDetails = () => {
 
   return (
     <div className="bg-[#1d2e24] min-h-screen p-8 rounded-2xl text-white font-sans">
-      <h2 className="text-3xl font-bold mb-6 tracking-tight">Supplier Details</h2>
+      <h2 className="text-3xl font-bold mb-6 tracking-tight">
+        {userAuth === 'supplier' ? 'My Detail' : 'Supplier Details'}
+      </h2>
 
-      <div className="flex gap-4 mb-6">
-        <input
-          className="input flex-1"
-          placeholder="Search by Supplier name / SKU name / # / Barcode..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
-        <button
-          onClick={handleSearch}
-          className="bg-lime-400 hover:bg-lime-300 text-gray-900 font-semibold px-4 py-2 rounded-xl text-sm"
-        >
-          Search
-        </button>
-        <button
-          onClick={handleClear}
-          className="bg-gray-600 hover:bg-gray-500 text-white font-medium px-4 py-2 rounded-xl text-sm"
-        >
-          Back
-        </button>
-      </div>
+      {userAuth !== 'supplier' && (
+        <div className="flex gap-4 mb-6">
+          <input
+            className="input flex-1"
+            placeholder="Search by Supplier name / SKU name / # / Barcode..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+          <button
+            onClick={handleSearch}
+            className="bg-lime-400 hover:bg-lime-300 text-gray-900 font-semibold px-4 py-2 rounded-xl text-sm"
+          >
+            Search
+          </button>
+          <button
+            onClick={handleClear}
+            className="bg-gray-600 hover:bg-gray-500 text-white font-medium px-4 py-2 rounded-xl text-sm"
+          >
+            Back
+          </button>
+        </div>
+      )}
 
       {info ? (
         <>

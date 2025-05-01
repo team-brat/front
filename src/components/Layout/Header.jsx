@@ -1,7 +1,7 @@
 import React, { useState, useContext } from 'react';
+import { UserAuthContext } from '../../App'; // Import the context
 import { ChevronDownIcon } from '@heroicons/react/16/solid';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { UserAuthContext } from '../../App'; // Import the context
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
@@ -22,8 +22,12 @@ const Header = () => {
     { name: 'SKU', href: '/sku' },
   ];
 
+  const filteredTabs = userAuth === 'supplier' 
+    ? initialTabs.filter(tab => tab.name !== 'Dashboard') 
+    : initialTabs;
+
   const [tabsState, setTabsState] = React.useState(() =>
-    initialTabs.map((tab) => ({
+    filteredTabs.map((tab) => ({
       ...tab,
       current: location.pathname === tab.href,
     }))

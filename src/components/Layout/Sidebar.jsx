@@ -12,6 +12,14 @@ const Sidebar = ({tabs}) => {
   // Filter out "Doc Verification" tab if username is "supplier"
   const filteredTabs = userAuth === "supplier" ? tabs.filter(tab => tab.name !== "Doc Verification") : tabs;
 
+  // Modify tab name for "Supplier Details" if userAuth is "supplier"
+  const modifiedTabs = filteredTabs.map(tab => {
+    if (userAuth === "supplier" && tab.name === "Supplier Details") {
+      return { ...tab, name: "My Supplier Detail" };
+    }
+    return tab;
+  });
+
   return (
     <div className="w-full xl1280:w-60 relative">
 
@@ -27,7 +35,7 @@ const Sidebar = ({tabs}) => {
 
         {isOpen && (
           <div className="absolute top-full left-0 right-0 mt-1 z-50 bg-[#1d2e24] rounded-xl shadow-xl border border-lime-500/20">
-            {filteredTabs.map((tab) => (
+            {modifiedTabs.map((tab) => (
               <NavLink
                 key={tab.href}
                 to={tab.href}
@@ -47,7 +55,7 @@ const Sidebar = ({tabs}) => {
       {/* Desktop View (Sidebar) */}
       <div className="hidden xl1280:block space-y-2 mt-4">
 
-        {filteredTabs.map((tab) => (
+        {modifiedTabs.map((tab) => (
           <NavLink
             key={tab.href}
             to={tab.href}
