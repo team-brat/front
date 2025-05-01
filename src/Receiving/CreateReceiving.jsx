@@ -102,7 +102,7 @@ const CreateReceiving = () => {
     const airwayBillMatch = ocrTexts.airway_bill?.match(/AWB-\d{6,}/i);
   
     if (!invoiceMatch || !billOfEntryMatch || invoiceMatch[0] !== billOfEntryMatch[0]) {
-      errors.push('❌ INV number in the Bill of Entry must match the one in the Invoice.');
+      errors.push('INV number in the Bill of Entry must match the one in the Invoice.');
       setOcrErrors(prev => ({
         ...prev,
         bill_of_entry: 'Resubmit required',
@@ -111,7 +111,7 @@ const CreateReceiving = () => {
     }
   
     if (!invoiceAwbMatch || !airwayBillMatch || invoiceAwbMatch[0] !== airwayBillMatch[0]) {
-      errors.push('❌ AWB number in the Invoice must match the one in the Airway Bill.');
+      errors.push('AWB number in the Invoice must match the one in the Airway Bill.');
       setOcrErrors(prev => ({
         ...prev,
         airway_bill: 'Resubmit required',

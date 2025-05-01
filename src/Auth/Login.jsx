@@ -1,12 +1,14 @@
 import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UserAuthContext } from '../App'; // Import the context
+import { ExclamationTriangleIcon } from '@heroicons/react/20/solid';
 
 export default function LoginPage() {
   const navigate = useNavigate();
   const { setUserAuth, setUsername } = useContext(UserAuthContext); // Use the context
   const [user_id, setUserId] = useState('');
   const [password, setPassword] = useState('');
+  const [loginError, setLoginError] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -41,9 +43,11 @@ export default function LoginPage() {
         }
       } else {
         console.error('Login failed');
+        setLoginError(true);
       }
     } catch (error) {
       console.error('Error during login:', error);
+      setLoginError(true);
     }
   };
 
@@ -66,6 +70,22 @@ export default function LoginPage() {
         <h2 className="text-center text-4xl font-bold text-white mb-8 font-grotesk">
           Welcome Back
         </h2>
+
+        {/* Error Alert */}
+        {loginError && (
+          <div className="border-l-4 border-yellow-400 bg-yellow-50 p-4 mb-6">
+            <div className="flex">
+              <div className="shrink-0">
+                <ExclamationTriangleIcon aria-hidden="true" className="size-5 text-yellow-400" />
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-yellow-700">
+                  Login failed. Please check your credentials and try again.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Form */}
         <form onSubmit={handleLogin} className="bg-black/30 rounded-2xl p-8 shadow-lg backdrop-blur-md">

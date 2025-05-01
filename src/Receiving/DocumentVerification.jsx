@@ -1,167 +1,135 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import Tesseract from 'tesseract.js';
+import { ExclamationTriangleIcon } from '@heroicons/react/20/solid';
 
 const DocVerification = () => {
   const [docsUploaded, setDocsUploaded] = useState({ invoice: false, bill: false, airway: false });
   const [barcode, setBarcode] = useState('');
   const [accuracy, setAccuracy] = useState(null);
   const [files, setFiles] = useState({ invoice: null, bill: null, airway: null });
-  const [uploadStatus, setUploadStatus] = useState('');
+  const [barcodeError, setBarcodeError] = useState(false);
+  const [documentOcrResults, setDocumentOcrResults] = useState({});
+  const [perDocumentScores, setPerDocumentScores] = useState({});
+  const [mismatchAlert, setMismatchAlert] = useState('');
+  const [ocrProgress, setOcrProgress] = useState({ invoice: '', bill: '', airway: '' });
 
   const handleFileChange = (e, docType) => {
     if (e.target.files.length > 0) {
-      setFiles({ ...files, [docType]: e.target.files[0] });
-      setDocsUploaded({ ...docsUploaded, [docType]: true });
+      const file = e.target.files[0];
+      setFiles(prev => ({ ...prev, [docType]: file }));
+      setDocsUploaded(prev => ({ ...prev, [docType]: true }));
+      setOcrProgress(prev => ({ ...prev, [docType]: 'Performing OCR...' }));
+
+      // Start OCR immediately upon file input
+      Tesseract.recognize(file, 'eng')
+        .then(ocrResult => {
+          setDocumentOcrResults(prev => ({ ...prev, [docType]: ocrResult.data.text }));
+          setOcrProgress(prev => ({ ...prev, [docType]: 'Submitted' }));
+        })
+        .catch(err => {
+          console.error(`OCR failed for ${docType}:`, err);
+          setOcrProgress(prev => ({ ...prev, [docType]: 'Failed' }));
+        });
     }
   };
 
-  const handleBarcodeConfirm = () => {
-    // mock verification logic
-    const randomAccuracy = Math.floor(Math.random() * 101); // 0~100%
-    setAccuracy(randomAccuracy);
+  const jaccardSimilarity = (textA, textB) => {
+    const tokenize = text => new Set(
+      text.toLowerCase().replace(/[^a-z0-9]+/g, ' ').split(/\s+/).filter(w => w.length > 2)
+    );
+    const setA = tokenize(textA);
+    const setB = tokenize(textB);
+    const intersection = new Set([...setA].filter(x => setB.has(x)));
+    const union = new Set([...setA, ...setB]);
+    return intersection.size / union.size;
   };
 
   const handleConfirm = async () => {
-    const API_URL = "https://zf42ytba0m.execute-api.us-east-2.amazonaws.com/dev"; // Base API URL
-    const DOCUMENT_ENDPOINT = `${API_URL}/documents`;
-    const orderId = `ORDER-${Date.now()}`;
-
-    const uploadDocument = async (file, documentType) => {
-      if (!file) return;
-
-      const reader = new FileReader();
-      
-      try {
-        const base64Content = await new Promise((resolve, reject) => {
-          reader.onload = () => resolve(reader.result.split(',')[1]);
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-        });
-
-        // Map document types to API expected format
-        const documentTypeMap = {
-          invoice: 'INVOICE',
-          bill: 'BILL_OF_ENTRY',
-          airway: 'AIRWAY_BILL'
-        };
-
-        const payload = {
-          order_id: orderId,
-          document_type: documentTypeMap[documentType],
-          file_name: file.name,
-          content_type: file.type,
-          file_content: base64Content,
-          user_id: "brat"
-        };
-
-        // Debug logs before API call
-        // console.log('=== Debug Info for Document Upload ===');
-        // console.log('Endpoint:', DOCUMENT_ENDPOINT);
-        // console.log('Document Type:', documentTypeMap[documentType]);
-        // console.log('File Name:', file.name);
-        // console.log('Content Type:', file.type);
-        // console.log('Order ID:', orderId);
-        // console.log('Payload Size:', JSON.stringify(payload).length, 'bytes');
-        // console.log('Base64 Content Preview:', base64Content.substring(0, 100) + '...');
-        // console.log('================================');
-
-        try {
-          console.log(`Attempting to upload ${documentType} document...`);
-          
-          const response = await fetch(DOCUMENT_ENDPOINT, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json'
-            },
-            body: JSON.stringify(payload),
-            credentials: 'include' // Include cookies if needed
-          });
-
-          console.log('Response Status:', response.status);
-          console.log('Response Headers:', Object.fromEntries(response.headers.entries()));
-
-          if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || `Upload failed for ${documentType}`);
-          }
-
-          const result = await response.json();
-          console.log(`${documentType} upload successful:`, result);
-          return result;
-
-        } catch (fetchError) {
-          console.error('Fetch Error Details:', {
-            message: fetchError.message,
-            stack: fetchError.stack
-          });
-          throw new Error(`Network error while uploading ${documentType}: ${fetchError.message}`);
-        }
-
-      } catch (error) {
-        console.error(`Error uploading ${documentType}:`, error);
-        setUploadStatus(`Failed to upload ${documentType}: ${error.message}`);
-        return null;
-      }
-    };
-
-    setUploadStatus('Uploading documents...');
+    if (!barcode) {
+      setBarcodeError(true);
+      return;
+    }
+    setBarcodeError(false);
 
     try {
-      const uploadPromises = [];
-      for (const [docType, file] of Object.entries(files)) {
-        if (file) {
-          uploadPromises.push(uploadDocument(file, docType));
-        }
-      }
+      const response = await fetch(`https://z0nql7r236.execute-api.us-east-2.amazonaws.com/dev/receiving-orders/by-barcode/${barcode}`);
+      if (!response.ok) throw new Error('Failed to fetch order details');
+      const data = await response.json();
+      const urls = data.documents.map(doc => ({ type: doc.document_type, url: doc.download_url }));
 
-      const results = await Promise.all(uploadPromises);
-
-      const successfulUploads = results.filter(Boolean);
-      const totalFiles = Object.values(files).filter(Boolean).length;
-      
-      if (successfulUploads.length === totalFiles) {
-        setUploadStatus('All documents uploaded successfully!');
-      } else {
-        setUploadStatus(`${successfulUploads.length} out of ${totalFiles} documents uploaded successfully`);
+      const ocrResults = {};
+      for (const { type, url } of urls) {
+        const key = type.toLowerCase().includes('invoice') ? 'invoice' : type.toLowerCase().includes('bill') ? 'bill' : 'airway';
+        setOcrProgress(prev => ({ ...prev, [key]: 'Performing OCR...' }));
+        const ocrResult = await Tesseract.recognize(url, 'eng');
+        ocrResults[key] = ocrResult.data.text;
+        setOcrProgress(prev => ({ ...prev, [key]: 'Submitted' }));
       }
+      setDocumentOcrResults(ocrResults);
+
+      await verifyUploadedDocuments(ocrResults);
+
     } catch (error) {
-      setUploadStatus('Error uploading documents');
-      console.error('Upload error:', error);
+      console.error('OCR or fetch error:', error);
     }
+  };
+
+  const verifyUploadedDocuments = async (ocrReference) => {
+    const results = {};
+    let matchCount = 0;
+
+    for (const [docType, file] of Object.entries(files)) {
+      if (!file || !ocrReference) continue;
+      try {
+        setOcrProgress(prev => ({ ...prev, [docType]: 'Performing OCR...' }));
+        const uploadedText = documentOcrResults[docType];
+        const referenceText = ocrReference[docType];
+        if (!referenceText) continue;
+
+        const score = jaccardSimilarity(uploadedText, referenceText);
+        const matched = score >= 0.7;
+
+        results[docType] = { score, matched };
+        if (matched) matchCount++;
+        setOcrProgress(prev => ({ ...prev, [docType]: 'Submitted' }));
+      } catch (err) {
+        console.error(`OCR failed for ${docType}:`, err);
+        results[docType] = { matched: false, score: 0 };
+        setOcrProgress(prev => ({ ...prev, [docType]: 'Failed' }));
+      }
+    }
+
+    const total = Object.values(files).filter(Boolean).length;
+    setAccuracy(total ? Math.round((matchCount / total) * 100) : 0);
+
+    const mismatches = Object.entries(results).filter(([_, r]) => !r.matched);
+    if (mismatches.length > 0) {
+      const wrongDocs = mismatches.map(([k, r]) => `${k}: ${Math.round(r.score * 100)}%`).join(', ');
+      setMismatchAlert(`Mismatched documents: ${wrongDocs}`);
+    } else {
+      setMismatchAlert('');
+    }
+    setPerDocumentScores(results);
   };
 
   return (
     <div className="bg-[#1d2e24] min-h-screen p-8 rounded-2xl text-white font-sans">
       <h2 className="text-3xl font-bold mb-8 tracking-tight">Document Verification</h2>
-
       <div className="space-y-6 mb-10">
-        {/* Barcode Check */}
-        <div className="bg-[#152b22] p-6 rounded-xl border border-lime-400/20">
+        <div className={`bg-[#152b22] p-6 rounded-xl border ${barcodeError ? 'border-red-500' : 'border-lime-400/20'}`}>
           <h3 className="text-lg font-semibold mb-4 text-lime-300">Enter Barcode or Serial #</h3>
-          <div className="flex items-center gap-4">
-            <input
-              type="text"
-              value={barcode}
-              onChange={(e) => setBarcode(e.target.value)}
-              placeholder="Enter barcode or serial number..."
-              className="input w-full"
-            />
-            <button
-              onClick={handleBarcodeConfirm}
-              className="bg-lime-400 hover:bg-lime-300 text-gray-900 font-semibold px-6 py-1.5 rounded-xl text-sm transition"
-            >
-              Confirm
-            </button>
-          </div>
+          <input
+            type="text"
+            value={barcode}
+            onChange={(e) => setBarcode(e.target.value)}
+            placeholder="Enter barcode or serial number..."
+            className={`input w-full ${barcodeError ? 'border-red-500' : ''}`}
+          />
+          {barcodeError && <p className="text-red-400 text-xs mt-2">Barcode is required</p>}
         </div>
-        {/* Upload Area */}
+
         <div className="bg-[#152b22] p-6 rounded-xl border border-lime-400/20">
           <h3 className="text-lg font-semibold text-lime-300 mb-4 pb-4">Upload Required Documents</h3>
-          {uploadStatus && (
-            <div className="mb-4 text-sm text-lime-400">
-              {uploadStatus}
-            </div>
-          )}
           {['invoice', 'bill', 'airway'].map((type) => (
             <div key={type} className="flex items-center gap-4 mb-3">
               <input
@@ -171,12 +139,13 @@ const DocVerification = () => {
               />
               <span className="text-sm font-dm">
                 {type === 'invoice' ? 'Invoice' : type === 'bill' ? 'Bill of Entry' : 'Airway Bill'}{' '}
-                {docsUploaded[type] && <span className="text-lime-400">Uploaded</span>}
+                {ocrProgress[type] && <span className="text-yellow-300 ml-2">({ocrProgress[type]})</span>}
               </span>
             </div>
           ))}
+
           <div className="flex justify-end">
-            <button 
+            <button
               onClick={handleConfirm}
               className="bg-lime-400 hover:bg-lime-300 text-gray-900 font-semibold px-6 py-1.5 rounded-xl text-sm transition">
               Confirm
@@ -184,18 +153,42 @@ const DocVerification = () => {
           </div>
         </div>
 
-        
-
-        {/* Result Section */}
         <div className="mt-8 text-center">
-          <p className="text-lime-300 text-xl font-bold">Document verification match rate: {accuracy !== null ? accuracy : ''}%</p>
-          <div className="mt-4 flex justify-center gap-6">
-            <button className="bg-lime-500 hover:bg-lime-400 text-gray-900 font-bold px-6 py-2 rounded-xl text-lg">
-              Approved
-            </button>
-            <button className="bg-red-600 hover:bg-red-500 text-white font-bold px-6 py-2 rounded-xl text-lg">
-              Declined
-            </button>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 justify-center items-start text-sm">
+            {['invoice', 'bill', 'airway'].map((type) => {
+              const label = type === 'invoice' ? 'Invoice' : type === 'bill' ? 'Bill of Entry' : 'Airway Bill';
+              const doc = perDocumentScores[type];
+              const uploaded = docsUploaded[type];
+              let content;
+              if (!uploaded) content = <p className="text-xs text-gray-400">Waiting for file...</p>;
+              else if (!doc) content = <p className="text-xs text-yellow-300">Pending...</p>;
+              else content = <p className="text-lg font-bold text-lime-300">{Math.round(doc.score * 100)}% match</p>;
+              const borderColor = doc ? (doc.matched ? 'border-lime-400 bg-[#1f352b]/80' : 'border-red-400 bg-[#2b1f1f]/80') : 'border-gray-900 bg-[#1a1a1a]/80';
+              return (
+                <div key={type} className={`p-4 rounded-xl border ${borderColor} shadow`}>
+                  <h4 className="text-base font-semibold mb-1 text-white">{label}</h4>
+                  {content}
+                </div>
+              );
+            })}
+          </div>
+
+          {mismatchAlert && (
+            <div className="border-l-4 border-yellow-400 bg-yellow-50 p-4 mb-4 mt-6">
+              <div className="flex">
+                <div className="shrink-0">
+                  <ExclamationTriangleIcon aria-hidden="true" className="w-5 h-5 text-yellow-400" />
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-yellow-700 whitespace-pre-line">{mismatchAlert}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="mt-12 flex justify-center gap-6">
+            <button className="bg-lime-500 hover:bg-lime-400 text-gray-900 font-bold px-6 py-2 rounded-xl text-lg">Approved</button>
+            <button className="bg-red-600 hover:bg-red-500 text-white font-bold px-6 py-2 rounded-xl text-lg">Declined</button>
           </div>
         </div>
       </div>
