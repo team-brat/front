@@ -1,16 +1,50 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { UserAuthContext } from '../App'; // Import the context
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
+  const { setUserAuth, setUsername } = useContext(UserAuthContext); // Use the context
+  const [user_id, setUserId] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    // TODO: 로그인 처리 로직 추가
-    console.log('Logging in with:', email, password);
-    navigate('/dashboard'); // 예시로 대시보드로 이동
+    console.log('Attempting to log in with:', user_id, password);
+
+    const API_URL = "https://z0nql7r236.execute-api.us-east-2.amazonaws.com/dev/login";
+    const payload = {
+      user_id: user_id,
+      password: password
+    };
+
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await response.json();
+      console.log('Login response:', data);
+
+      if (data.success) {
+        console.log('Login successful! User role:', data.role);
+        setUsername(user_id);
+        setUserAuth(data.role);
+        if (data.role === 'operator') {
+          navigate('/dashboard');
+        } else if (data.role === 'supplier') {
+          navigate('/receiving/create');
+        }
+      } else {
+        console.error('Login failed');
+      }
+    } catch (error) {
+      console.error('Error during login:', error);
+    }
   };
 
   return (
@@ -37,17 +71,17 @@ export default function LoginPage() {
         <form onSubmit={handleLogin} className="bg-black/30 rounded-2xl p-8 shadow-lg backdrop-blur-md">
           <div className="space-y-6">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-lime-300">
-                Email
+              <label htmlFor="user_id" className="block text-sm font-medium text-lime-300">
+                User ID
               </label>
               <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                id="user_id"
+                type="text" // Changed from "email" to "text" to prevent "@" warning
+                value={user_id}
+                onChange={(e) => setUserId(e.target.value)}
                 required
                 className="mt-2 w-full rounded-lg bg-[#1b3d2c]/50 border-none text-white placeholder-gray-400 focus:ring-2 focus:ring-lime-400 p-3"
-                placeholder="you@example.com"
+                placeholder="Enter your user ID"
               />
             </div>
 

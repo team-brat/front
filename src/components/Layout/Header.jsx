@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { ChevronDownIcon } from '@heroicons/react/16/solid';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { UserAuthContext } from '../../App'; // Import the context
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
@@ -9,10 +10,11 @@ function classNames(...classes) {
 const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { username, userAuth } = useContext(UserAuthContext); // Use the context to get the username and userAuth
   const [isOpen, setIsOpen] = useState(false);
 
   const initialTabs = [
-    { name: 'Dashboard', href: '/warehouse' },
+    { name: 'Dashboard', href: '/dashboard' },
     { name: 'Receiving', href: '/receiving/create' },
     { name: 'TQ', href: '/tq/inspection-request' },
     { name: 'Binning', href: '/binning' },
@@ -47,8 +49,17 @@ const Header = () => {
   return (
     <header className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-4">
       <div className="flex items-center gap-4">
-        <img src="/brat-logo.png" alt="brat logo" className="h-10 drop-shadow-[0_0_8px_#a3e635]" />
-        <h1 className=" text-3xl font-bold tracking-tight">Hello, Vijay</h1>
+        <img 
+          src="/brat-logo.png" 
+          alt="brat logo" 
+          className="h-10 drop-shadow-[0_0_8px_#a3e635]" 
+          onClick={() => navigate('/')}
+          style={{ cursor: 'pointer' }}
+        />
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Hello, {username.charAt(0).toUpperCase() + username.slice(1)}</h1>
+          <p className="text-sm text-lime-300">You're logged in as <span className="font-semibold">{userAuth}</span></p>
+        </div>
       </div>
 
       {/* Tabs Section */}

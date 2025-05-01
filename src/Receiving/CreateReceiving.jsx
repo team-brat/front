@@ -39,6 +39,9 @@ const CreateReceiving = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log('Current formData:', formData);
+    console.log('Current attachments:', attachments);
+
 
     const requiredFields = [
       'scheduledDate', 'supplierName', 'supplierNumber',
@@ -61,7 +64,7 @@ const CreateReceiving = () => {
       setFormErrors({});
     }
 
-    const API_URL = "https://zf42ytba0m.execute-api.us-east-2.amazonaws.com/dev";
+    const API_URL = "https://z0nql7r236.execute-api.us-east-2.amazonaws.com/dev";
     const RECEIVING_ORDERS_ENDPOINT = `${API_URL}/receiving-orders`;
 
     const payload = {
@@ -189,7 +192,7 @@ const CreateReceiving = () => {
               </span>
               <input
                 type="file"
-                accept=".pdf,.doc,.docx"
+                accept=".png,.jpg,.jpeg"
                 onChange={(e) => handleFileChange(e, key)}
                 className="block w-full md:w-auto text-sm text-white file:mr-3 file:py-1 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-[#365c46] file:text-white hover:file:bg-[#3e6e53]"
                 lang="en"
