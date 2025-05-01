@@ -1,20 +1,32 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext } from 'react';
 import { UserAuthContext } from '../App'; // Import the context
 import mockData from '../sample-data/mock-receiving-records.json';
 
 const ReceivingRecords = () => {
   const { userAuth } = useContext(UserAuthContext);
   const [query, setQuery] = useState('');
-  
-  const filteredData = mockData.filter(row => {
-    const matchesQuery = Object.values(row).some(value => value.toLowerCase().includes(query.toLowerCase()));
-    const isSupplierAuth = userAuth === 'supplier' ? row.supplierNumber === 'SUP123' : true;
+  const [expandedRows, setExpandedRows] = useState([]);
+
+  const toggleRow = (index) => {
+    setExpandedRows((prev) =>
+      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
+    );
+  };
+
+  const filteredData = mockData.filter((row) => {
+    const matchesQuery = Object.values(row).some((value) =>
+      value.toLowerCase().includes(query.toLowerCase())
+    );
+    const isSupplierAuth =
+      userAuth === 'supplier' ? row.supplierNumber === 'SUP123' : true;
     return matchesQuery && isSupplierAuth;
   });
 
   return (
     <div className="bg-[#1d2e24] min-h-screen p-8 rounded-2xl text-white font-sans">
-      <h2 className="text-3xl font-bold mb-8 tracking-tight font-grotesk">Receiving Records</h2>
+      <h2 className="text-3xl font-bold mb-8 tracking-tight font-grotesk">
+        Receiving Records
+      </h2>
 
       <div className="flex flex-col md:flex-row md:items-center gap-4 mb-6">
         <input
@@ -47,22 +59,46 @@ const ReceivingRecords = () => {
           </thead>
           <tbody className="divide-y divide-[#334d3d]">
             {filteredData.map((row, idx) => (
-              <tr
-                key={idx}
-                className="odd:bg-[#1a2a21] even:bg-[#1f3328] hover:bg-[#294636] transition duration-150"
-              >
-                <td className="px-6 py-3 whitespace-nowrap">{row.receivedDate}</td>
-                <td className="px-6 py-3 whitespace-nowrap">{row.supplierName}</td>
-                <td className="px-6 py-3 whitespace-nowrap">{row.supplierNumber}</td>
-                <td className="px-6 py-3 whitespace-nowrap">{row.skuName}</td>
-                <td className="px-6 py-3 whitespace-nowrap">{row.skuNumber}</td>
-                <td className="px-6 py-3 whitespace-nowrap">{row.barcode}</td>
-                <td className="px-6 py-3 whitespace-nowrap">{row.grn}</td>
-              </tr>
+              <React.Fragment key={idx}>
+                <tr
+                  onClick={() => toggleRow(idx)}
+                  className="odd:bg-[#1a2a21] even:bg-[#1f3328] hover:bg-[#294636] transition duration-150 cursor-pointer"
+                >
+                  <td className="px-6 py-3 whitespace-nowrap">{row.receivedDate}</td>
+                  <td className="px-6 py-3 whitespace-nowrap">{row.supplierName}</td>
+                  <td className="px-6 py-3 whitespace-nowrap">{row.supplierNumber}</td>
+                  <td className="px-6 py-3 whitespace-nowrap">{row.skuName}</td>
+                  <td className="px-6 py-3 whitespace-nowrap">{row.skuNumber}</td>
+                  <td className="px-6 py-3 whitespace-nowrap">{row.barcode}</td>
+                  <td className="px-6 py-3 whitespace-nowrap">{row.grn}</td>
+                </tr>
+                {expandedRows.includes(idx) && (
+                  <tr className="bg-[#2a3d33]">
+                    <td colSpan="7" className="px-6 py-3">
+                      <div className="text-white">
+                        <div className="flex justify-between">
+                          <span>HS Code: 6109.10</span>
+                          <span>Description: Name: Cottom T-Shirt / Size: S</span>
+                          <span>Quantity: 500</span>
+                          <span>Price: 30</span>
+                        </div>
+                        <div className="flex justify-between mt-2">
+                          <span>HS Code: 6109.10</span>
+                          <span>Description: Name: Cottom T-Shirt / Size: M</span>
+                          <span>Quantity: 700</span>
+                          <span>Price: 31</span>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </React.Fragment>
             ))}
             {filteredData.length === 0 && (
               <tr>
-                <td colSpan="7" className="text-center text-gray-400 py-6">No matching records found.</td>
+                <td colSpan="7" className="text-center text-gray-400 py-6">
+                  No matching records found.
+                </td>
               </tr>
             )}
           </tbody>
