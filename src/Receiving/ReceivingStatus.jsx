@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
+import { UserAuthContext } from '../App'; // Import the context
 import mockStatus from '../sample-data/mock-receiving-status.json';
 
 const statusColors = {
@@ -8,8 +9,12 @@ const statusColors = {
 };
 
 const ReceivingStatus = () => {
+  const { userAuth } = useContext(UserAuthContext);
+  const initialResults = userAuth === 'supplier' 
+    ? mockStatus.filter((row) => row.supplierNumber === 'SUP123') 
+    : mockStatus;
+  const [results, setResults] = useState(initialResults);
   const [date, setDate] = useState('');
-  const [results, setResults] = useState(mockStatus);
 
   const handleSearch = () => {
     if (date === '') {
@@ -25,7 +30,7 @@ const ReceivingStatus = () => {
 
       <div className="flex flex-col sm:flex-row gap-4 mb-6 items-center">
         <input
-          type="date"
+          type="date" 
           value={date}
           onChange={(e) => setDate(e.target.value)}
           className="bg-[#0f1f17] px-4 py-2 rounded-md border border-lime-400/30 text-white text-sm"

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Tesseract from 'tesseract.js';
 
 const CreateReceiving = () => {
   const [formData, setFormData] = useState({});
@@ -8,6 +9,17 @@ const CreateReceiving = () => {
     bill_of_entry: null,
     airway_bill: null
   });
+  const [ocrTexts, setOcrTexts] = useState({
+    invoice: '',
+    bill_of_entry: '',
+    airway_bill: ''
+  });
+  const [uploadingStatus, setUploadingStatus] = useState({
+    invoice: false,
+    bill_of_entry: false,
+    airway_bill: false
+  });
+  const [ocrErrors, setOcrErrors] = useState({});
 
   const handleChange = (e) => {
     setFormData({
@@ -20,35 +32,75 @@ const CreateReceiving = () => {
     if (e.target.files.length > 0) {
       const file = e.target.files[0];
       const reader = new FileReader();
-
-      reader.onload = () => {
+  
+      reader.onload = async () => {
         const base64Content = reader.result.split(',')[1];
+        setUploadingStatus(prev => ({ ...prev, [documentType]: true }));
+  
+        let extractedText = '';
+        try {
+          const ocrResult = await Tesseract.recognize(file, 'eng', {
+            logger: m => console.log(`[OCR ${documentType}]`, m.status, m.progress),
+          });
+          extractedText = ocrResult.data.text;
+          setOcrTexts(prev => ({
+            ...prev,
+            [documentType]: extractedText || '[EMPTY]'
+          }));
+        } catch (err) {
+          console.error(`❌ OCR failed for ${documentType}:`, err);
+        } finally {
+          setUploadingStatus(prev => ({ ...prev, [documentType]: false }));
+        }
+  
         setAttachments(prev => ({
           ...prev,
           [documentType]: {
             file_name: file.name,
             content_type: file.type,
-            file_content: base64Content
+            file_content: base64Content,
+            extracted_text: extractedText || '[EMPTY]'
           }
         }));
       };
-
+  
       reader.readAsDataURL(file);
     }
+  };
+
+  const validateOcrTexts = () => {
+    const errors = {};
+    const resetOcrText = (key) => {
+      setOcrTexts(prev => ({
+        ...prev,
+        [key]: ''
+      }));
+    };
+
+    if (!/INV-\d+/.test(ocrTexts.invoice)) {
+      errors.invoice = 'Please upload a valid Invoice document...';
+    }
+    if (!/BOE-\d+/.test(ocrTexts.bill_of_entry)) {
+      errors.bill_of_entry = 'Please upload a valid Bill of Entry document...';
+    }
+    if (!/AWB-\d+/.test(ocrTexts.airway_bill)) {
+      errors.airway_bill = 'Please upload a valid Airway Bill document...';
+    }
+    return errors;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     console.log('Current formData:', formData);
     console.log('Current attachments:', attachments);
-
+  
     const requiredFields = [
       'scheduledDate', 'supplierName', 'supplierNumber',
       'skuName', 'skuNumber', 'barcode',
       'length', 'width', 'height', 'depth', 'volume', 'weight',
       'shipmentNumber', 'truckNumber', 'driverContact'
     ];
-
+  
     const errors = {};
     requiredFields.forEach((field) => {
       if (!formData[field]) {
@@ -56,16 +108,37 @@ const CreateReceiving = () => {
       }
     });
 
+    const ocrErrors = validateOcrTexts();
+    if (Object.keys(ocrErrors).length > 0) {
+      setOcrErrors(ocrErrors);
+      return;
+    }
+  
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
       return;
     } else {
       setFormErrors({});
     }
-
+  
     const API_URL = "https://z0nql7r236.execute-api.us-east-2.amazonaws.com/dev";
     const RECEIVING_ORDERS_ENDPOINT = `${API_URL}/receiving-orders`;
-
+  
+    const documentsArray = [
+      {
+        document_type: "INVOICE",
+        ...attachments.invoice
+      },
+      {
+        document_type: "BILL_OF_ENTRY",
+        ...attachments.bill_of_entry
+      },
+      {
+        document_type: "AIRWAY_BILL",
+        ...attachments.airway_bill
+      }
+    ];
+  
     const payload = {
       request_details: {
         scheduled_date: formData.scheduledDate,
@@ -73,12 +146,10 @@ const CreateReceiving = () => {
         supplier_number: formData.supplierNumber,
         sku_name: formData.skuName,
         sku_number: formData.skuNumber,
-        serial_or_barcode: formData.barcode
+        barcode: formData.barcode,
+        notes: formData.notes || "자동 생성 요청입니다."
       },
       sku_information: {
-        sku_name: formData.skuName,
-        sku_number: formData.skuNumber,
-        serial_or_barcode: formData.barcode,
         length: parseFloat(formData.length),
         width: parseFloat(formData.width),
         height: parseFloat(formData.height),
@@ -89,14 +160,14 @@ const CreateReceiving = () => {
       shipment_information: {
         shipment_number: formData.shipmentNumber,
         truck_number: formData.truckNumber,
-        driver_contact_info: formData.driverContact
+        driver_contact: formData.driverContact
       },
-      documents: attachments,
+      documents: documentsArray,
       user_id: "brat"
     };
-
-    console.log('Sending payload:', payload);
-
+  
+    console.log('📦 Final payload being sent:', JSON.stringify(payload, null, 2));
+  
     try {
       const response = await fetch(RECEIVING_ORDERS_ENDPOINT, {
         method: 'POST',
@@ -105,21 +176,25 @@ const CreateReceiving = () => {
         },
         body: JSON.stringify(payload)
       });
-
+  
       console.log('Response status:', response.status);
-
+  
       if (response.status === 201) {
         const responseData = await response.json();
-        console.log('Success! Order created:', responseData);
+        console.log('✅ Success! Order created:', responseData);
+        
+        console.log("Invoice에서 추출된 텍스트:", ocrTexts.invoice);
+
       } else {
         const errorData = await response.json();
-        console.error('Failed to create order:', errorData);
+        console.error('❌ Failed to create order:', errorData);
       }
-
+  
     } catch (error) {
-      console.error('Error creating receiving order:', error);
+      console.error('🔥 Error creating receiving order:', error);
     }
   };
+  
 
   return (
     <form onSubmit={handleSubmit} className="bg-[#1d2e24] p-8 rounded-2xl space-y-8 w-full">
@@ -184,11 +259,12 @@ const CreateReceiving = () => {
       <div>
         <h2 className="text-xl font-semibold mb-4">Document Attachment</h2>
         <div className="space-y-4">
-          {[{ label: 'Invoice', key: 'invoice' }, { label: 'Bill of Entry', key: 'bill_of_entry' }, { label: 'Airway Bill', key: 'airway_bill' }].map(({ label, key }) => (
+          {[{ label: 'Invoice', key: 'invoice', emoji: '📄' }, { label: 'Bill of Entry', key: 'bill_of_entry', emoji: '📑' }, { label: 'Airway Bill', key: 'airway_bill', emoji: '🚨' }].map(({ label, key, emoji }) => (
             <div key={key} className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-2">
-              <span className={`text-lg font-dm md:w-40 ${attachments[key] ? 'text-lime-400' : 'text-gray-400'}`}>
-                {attachments[key] ? `✅ ${label} Submitted` : `${label}`}
+              <span className={`text-lg font-dm md:w-40 ${attachments[key] ? (ocrErrors[key] ? 'text-red-400' : 'text-lime-400') : 'text-gray-400'}`}>
+                {uploadingStatus[key] ? <span className="text-blue-400">{`${emoji} ${label} Uploading...`}</span> : (attachments[key] ? (ocrErrors[key] ? `${emoji} ${label} Resubmit required` : `✅ ${label} Submitted`) : `${emoji} ${label}`)}
               </span>
+              {ocrErrors[key] && <p className="text-red-400 text-sm md:w-40 ml-48 mt-2"><i>{ocrErrors[key]}...</i></p>}
               <input
                 type="file"
                 accept=".png,.jpg,.jpeg"
@@ -222,7 +298,7 @@ const CreateReceiving = () => {
         }
         .input::placeholder {
           color: #9ca3af;
-          font-size: 1.125rem; /* Further increased font size for better readability while maintaining design */
+          font-size: 1.125rem;
         }
         input::file-selector-button {
           content: 'Upload File';

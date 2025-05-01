@@ -1,11 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
+import { UserAuthContext } from '../App'; // Import the context
 import mockData from '../sample-data/mock-receiving-records.json';
 
 const ReceivingRecords = () => {
+  const { userAuth } = useContext(UserAuthContext);
   const [query, setQuery] = useState('');
-  const filteredData = mockData.filter(row =>
-    Object.values(row).some(value => value.toLowerCase().includes(query.toLowerCase()))
-  );
+  
+  const filteredData = mockData.filter(row => {
+    const matchesQuery = Object.values(row).some(value => value.toLowerCase().includes(query.toLowerCase()));
+    const isSupplierAuth = userAuth === 'supplier' ? row.supplierNumber === 'SUP123' : true;
+    return matchesQuery && isSupplierAuth;
+  });
 
   return (
     <div className="bg-[#1d2e24] min-h-screen p-8 rounded-2xl text-white font-sans">

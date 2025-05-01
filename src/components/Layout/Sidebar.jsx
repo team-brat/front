@@ -12,10 +12,16 @@ const Sidebar = ({tabs}) => {
   // Filter out "Doc Verification" tab if username is "supplier"
   const filteredTabs = userAuth === "supplier" ? tabs.filter(tab => tab.name !== "Doc Verification") : tabs;
 
-  // Modify tab name for "Supplier Details" if userAuth is "supplier"
+  // Modify tab names based on userAuth
   const modifiedTabs = filteredTabs.map(tab => {
-    if (userAuth === "supplier" && tab.name === "Supplier Details") {
-      return { ...tab, name: "My Supplier Detail" };
+    if (userAuth === "supplier") {
+      if (tab.name === "Supplier Details") {
+        return { ...tab, name: "My Supplier Detail" };
+      } else if (tab.name === "Receiving Status") {
+        return { ...tab, name: "My Receiving Status" };
+      } else if (tab.name === "Receiving Records") {
+        return { ...tab, name: "My Receiving Records" };
+      }
     }
     return tab;
   });
