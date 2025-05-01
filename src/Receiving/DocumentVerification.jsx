@@ -18,18 +18,7 @@ const DocVerification = () => {
       const file = e.target.files[0];
       setFiles(prev => ({ ...prev, [docType]: file }));
       setDocsUploaded(prev => ({ ...prev, [docType]: true }));
-      setOcrProgress(prev => ({ ...prev, [docType]: 'Performing OCR...' }));
-
-      // Start OCR immediately upon file input
-      Tesseract.recognize(file, 'eng')
-        .then(ocrResult => {
-          setDocumentOcrResults(prev => ({ ...prev, [docType]: ocrResult.data.text }));
-          setOcrProgress(prev => ({ ...prev, [docType]: 'Submitted' }));
-        })
-        .catch(err => {
-          console.error(`OCR failed for ${docType}:`, err);
-          setOcrProgress(prev => ({ ...prev, [docType]: 'Failed' }));
-        });
+      setOcrProgress(prev => ({ ...prev, [docType]: 'File Uploaded' }));
     }
   };
 
@@ -87,8 +76,8 @@ const DocVerification = () => {
     for (const [docType, file] of Object.entries(files)) {
       if (!file || !ocrReference) continue;
       try {
-        setOcrProgress(prev => ({ ...prev, [docType]: 'Performing OCR...' }));
-        const uploadedText = documentOcrResults[docType];
+        setOcrProgress(prev => ({ ...prev, [docType]: 'Calculating...' }));
+        const uploadedText = await Tesseract.recognize(file, 'eng').then(ocrResult => ocrResult.data.text);
         const referenceText = ocrReference[docType];
         if (!referenceText) continue;
 
