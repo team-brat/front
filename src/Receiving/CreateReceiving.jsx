@@ -216,6 +216,7 @@ const CreateReceiving = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          "x-api-key": "rszGEii3Wf99zN1SXqTs0aq4Q7loKTrxa8gd7Zdg"
         },
         body: JSON.stringify(payload)
       });

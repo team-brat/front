@@ -59,11 +59,17 @@ const DocVerification = () => {
 
       const ocrResults = {};
       for (const { type, url } of urls) {
-        const key = type.toLowerCase().includes('invoice') ? 'invoice' : type.toLowerCase().includes('bill') ? 'bill' : 'airway';
-        setOcrProgress(prev => ({ ...prev, [key]: 'Performing OCR...' }));
-        const ocrResult = await Tesseract.recognize(url, 'eng');
-        ocrResults[key] = ocrResult.data.text;
-        setOcrProgress(prev => ({ ...prev, [key]: 'Submitted' }));
+        const key = type.toLowerCase().includes('airway') ? 'airway'
+           : type.toLowerCase().includes('invoice') ? 'invoice'
+           : type.toLowerCase().includes('bill') ? 'bill'
+           : null;
+
+        if (key) {
+          setOcrProgress(prev => ({ ...prev, [key]: 'Performing OCR...' }));
+          const ocrResult = await Tesseract.recognize(url, 'eng');
+          ocrResults[key] = ocrResult.data.text;
+          setOcrProgress(prev => ({ ...prev, [key]: 'Submitted' }));
+        }
       }
       setDocumentOcrResults(ocrResults);
 
@@ -160,8 +166,8 @@ const DocVerification = () => {
               const doc = perDocumentScores[type];
               const uploaded = docsUploaded[type];
               let content;
-              if (!uploaded) content = <p className="text-xs text-gray-400">Waiting for file...</p>;
-              else if (!doc) content = <p className="text-xs text-yellow-300">Pending...</p>;
+              if (!uploaded) content = <p className="text-lg text-gray-400">Waiting for file...</p>;
+              else if (!doc) content = <p className="text-lg text-yellow-300">Calculating...</p>;
               else content = <p className="text-lg font-bold text-lime-300">{Math.round(doc.score * 100)}% match</p>;
               const borderColor = doc ? (doc.matched ? 'border-lime-400 bg-[#1f352b]/80' : 'border-red-400 bg-[#2b1f1f]/80') : 'border-gray-900 bg-[#1a1a1a]/80';
               return (
