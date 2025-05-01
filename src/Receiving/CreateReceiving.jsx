@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Tesseract from 'tesseract.js';
+import { XCircleIcon } from '@heroicons/react/20/solid';
 
 const CreateReceiving = () => {
   const [formData, setFormData] = useState({});
@@ -20,6 +21,7 @@ const CreateReceiving = () => {
     airway_bill: false
   });
   const [ocrErrors, setOcrErrors] = useState({});
+  const [alertErrors, setAlertErrors] = useState([]);
 
   const handleChange = (e) => {
     setFormData({
@@ -89,6 +91,32 @@ const CreateReceiving = () => {
     return errors;
   };
 
+  const validateMatchingTexts = () => {
+    const errors = [];
+    const invoiceMatch = ocrTexts.invoice.match(/INV-\d+-\d+/);
+    const billOfEntryMatch = ocrTexts.bill_of_entry.match(/INV-\d+-\d+/);
+    const airwayBillMatch = ocrTexts.airway_bill.match(/AWB-\d+-\d+/);
+    const invoiceAwbMatch = ocrTexts.invoice.match(/AWB-\d+-\d+/);
+
+    if (!invoiceMatch || !billOfEntryMatch || invoiceMatch[0] !== billOfEntryMatch[0]) {
+      errors.push('INV number in the Bill of Entry must match INV number in the Commercial Invoice.');
+      setOcrErrors(prev => ({
+        ...prev,
+        bill_of_entry: 'Resubmit required',
+        invoice: 'Resubmit required'
+      }));
+    }
+    if (!invoiceAwbMatch || !airwayBillMatch || invoiceAwbMatch[0] !== airwayBillMatch[0]) {
+      errors.push('AWB number in the Commercial Invoice must match AWB number in the Airway Bill.');
+      setOcrErrors(prev => ({
+        ...prev,
+        airway_bill: 'Resubmit required',
+        invoice: 'Resubmit required'
+      }));
+    }
+    return errors;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     console.log('Current formData:', formData);
@@ -111,6 +139,12 @@ const CreateReceiving = () => {
     const ocrErrors = validateOcrTexts();
     if (Object.keys(ocrErrors).length > 0) {
       setOcrErrors(ocrErrors);
+      return;
+    }
+
+    const matchingErrors = validateMatchingTexts();
+    if (matchingErrors.length > 0) {
+      setAlertErrors(matchingErrors);
       return;
     }
   
@@ -194,6 +228,10 @@ const CreateReceiving = () => {
       console.error('🔥 Error creating receiving order:', error);
     }
   };
+
+  const handleAlertClose = () => {
+    setAlertErrors([]);
+  };
   
 
   return (
@@ -259,10 +297,10 @@ const CreateReceiving = () => {
       <div>
         <h2 className="text-xl font-semibold mb-4">Document Attachment</h2>
         <div className="space-y-4">
-          {[{ label: 'Invoice', key: 'invoice', emoji: '📄' }, { label: 'Bill of Entry', key: 'bill_of_entry', emoji: '📑' }, { label: 'Airway Bill', key: 'airway_bill', emoji: '🚨' }].map(({ label, key, emoji }) => (
+          {[{ label: 'Invoice', key: 'invoice', emoji: '📄' }, { label: 'Bill of Entry', key: 'bill_of_entry', emoji: '📄' }, { label: 'Airway Bill', key: 'airway_bill', emoji: '📄' }].map(({ label, key, emoji }) => (
             <div key={key} className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-2">
               <span className={`text-lg font-dm md:w-40 ${attachments[key] ? (ocrErrors[key] ? 'text-red-400' : 'text-lime-400') : 'text-gray-400'}`}>
-                {uploadingStatus[key] ? <span className="text-blue-400">{`${emoji} ${label} Uploading...`}</span> : (attachments[key] ? (ocrErrors[key] ? `${emoji} ${label} Resubmit required` : `✅ ${label} Submitted`) : `${emoji} ${label}`)}
+                {uploadingStatus[key] ? <span className="text-blue-400">{`${emoji} ${label} Uploading...`}</span> : (attachments[key] ? (ocrErrors[key] ? `🚨 ${label} Resubmit required` : `✅ ${label} Submitted`) : `${emoji} ${label}`)}
               </span>
               {ocrErrors[key] && <p className="text-red-400 text-sm md:w-40 ml-48 mt-2"><i>{ocrErrors[key]}...</i></p>}
               <input
@@ -276,6 +314,31 @@ const CreateReceiving = () => {
           ))}
         </div>
       </div>
+
+      {alertErrors.length > 0 && (
+        <div className="rounded-md bg-red-50 p-4 mb-4 relative">
+          <div className="flex">
+            <div className="shrink-0">
+              <XCircleIcon aria-hidden="true" className="h-5 w-5 text-red-400" />
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-red-800">There were errors with your submission</h3>
+              <div className="mt-2 text-sm text-red-700">
+                <ul role="list" className="list-disc space-y-1 pl-5">
+                  {alertErrors.map((error, index) => (
+                    <li key={index}>{error}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+          <button onClick={handleAlertClose} className="absolute top-2 right-2 text-black hover:text-gray-700">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M10 9.293l4.646-4.647a.5.5 0 01.708.708L10.707 10l4.647 4.646a.5.5 0 01-.708.708L10 10.707l-4.646 4.647a.5.5 0 01-.708-.708L9.293 10 4.646 5.354a.5.5 0 11.708-.708L10 9.293z" clipRule="evenodd" />
+            </svg>
+          </button>
+        </div>
+      )}
 
       <div className="pt-4 text-right">
         <button
