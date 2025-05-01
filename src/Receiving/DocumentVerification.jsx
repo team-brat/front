@@ -135,36 +135,6 @@ const DocVerification = () => {
       <h2 className="text-3xl font-bold mb-8 tracking-tight">Document Verification</h2>
 
       <div className="space-y-6 mb-10">
-        {/* Upload Area */}
-        <div className="bg-[#152b22] p-6 rounded-xl border border-lime-400/20">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold text-lime-300">Upload Required Documents</h3>
-            <button 
-              onClick={handleConfirm}
-              className="bg-lime-400 hover:bg-lime-300 text-gray-900 font-semibold px-6 py-1.5 rounded-xl text-sm transition">
-              Confirm
-            </button>
-          </div>
-          {uploadStatus && (
-            <div className="mb-4 text-sm text-lime-400">
-              {uploadStatus}
-            </div>
-          )}
-          {['invoice', 'bill', 'airway'].map((type) => (
-            <div key={type} className="flex items-center gap-4 mb-3">
-              <input
-                type="file"
-                onChange={(e) => handleFileChange(e, type)}
-                className="block w-full md:w-auto text-sm text-white file:mr-4 file:py-1.5 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#a3e635]/20 file:text-lime-300 hover:file:bg-lime-400/30"
-              />
-              <span className="text-sm font-dm">
-                {type === 'invoice' ? 'Invoice' : type === 'bill' ? 'Bill of Entry' : 'Airway Bill'}{' '}
-                {docsUploaded[type] && <span className="text-lime-400">Uploaded</span>}
-              </span>
-            </div>
-          ))}
-        </div>
-
         {/* Barcode Check */}
         <div className="bg-[#152b22] p-6 rounded-xl border border-lime-400/20">
           <h3 className="text-lg font-semibold mb-4 text-lime-300">Enter Barcode or Serial #</h3>
@@ -184,6 +154,37 @@ const DocVerification = () => {
             </button>
           </div>
         </div>
+        {/* Upload Area */}
+        <div className="bg-[#152b22] p-6 rounded-xl border border-lime-400/20">
+          <h3 className="text-lg font-semibold text-lime-300 mb-4 pb-4">Upload Required Documents</h3>
+          {uploadStatus && (
+            <div className="mb-4 text-sm text-lime-400">
+              {uploadStatus}
+            </div>
+          )}
+          {['invoice', 'bill', 'airway'].map((type) => (
+            <div key={type} className="flex items-center gap-4 mb-3">
+              <input
+                type="file"
+                onChange={(e) => handleFileChange(e, type)}
+                className="block w-full md:w-auto text-sm text-white file:mr-4 file:py-1.5 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#a3e635]/20 file:text-lime-300 hover:file:bg-lime-400/30"
+              />
+              <span className="text-sm font-dm">
+                {type === 'invoice' ? 'Invoice' : type === 'bill' ? 'Bill of Entry' : 'Airway Bill'}{' '}
+                {docsUploaded[type] && <span className="text-lime-400">Uploaded</span>}
+              </span>
+            </div>
+          ))}
+          <div className="flex justify-end">
+            <button 
+              onClick={handleConfirm}
+              className="bg-lime-400 hover:bg-lime-300 text-gray-900 font-semibold px-6 py-1.5 rounded-xl text-sm transition">
+              Confirm
+            </button>
+          </div>
+        </div>
+
+        
 
         {/* Result Section */}
         <div className="mt-8 text-center">

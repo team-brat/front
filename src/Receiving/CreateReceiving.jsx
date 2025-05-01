@@ -42,13 +42,14 @@ const CreateReceiving = () => {
         let extractedText = '';
         try {
           const ocrResult = await Tesseract.recognize(file, 'eng', {
-            logger: m => console.log(`[OCR ${documentType}]`, m.status, m.progress),
+            // logger: m => console.log(`[OCR ${documentType}]`, m.status, m.progress),
           });
           extractedText = ocrResult.data.text;
           setOcrTexts(prev => ({
             ...prev,
             [documentType]: extractedText || '[EMPTY]'
           }));
+          console.log(`[OCR ${documentType}]`, extractedText);
         } catch (err) {
           console.error(`❌ OCR failed for ${documentType}:`, err);
         } finally {
@@ -93,29 +94,37 @@ const CreateReceiving = () => {
 
   const validateMatchingTexts = () => {
     const errors = [];
-    const invoiceMatch = ocrTexts.invoice.match(/INV-\d+-\d+/);
-    const billOfEntryMatch = ocrTexts.bill_of_entry.match(/INV-\d+-\d+/);
-    const airwayBillMatch = ocrTexts.airway_bill.match(/AWB-\d+-\d+/);
-    const invoiceAwbMatch = ocrTexts.invoice.match(/AWB-\d+-\d+/);
-
+  
+    const invoiceMatch = ocrTexts.invoice?.match(/INV-\d{4}-\d{4}/i);  // ex: INV-2024-0001
+    const billOfEntryMatch = ocrTexts.bill_of_entry?.match(/INV-\d{4}-\d{4}/i);
+  
+    const invoiceAwbMatch = ocrTexts.invoice?.match(/AWB-\d{6,}/i);    // ex: AWB-789456123
+    const airwayBillMatch = ocrTexts.airway_bill?.match(/AWB-\d{6,}/i);
+  
     if (!invoiceMatch || !billOfEntryMatch || invoiceMatch[0] !== billOfEntryMatch[0]) {
-      errors.push('INV number in the Bill of Entry must match INV number in the Commercial Invoice.');
+      errors.push('❌ INV number in the Bill of Entry must match the one in the Invoice.');
       setOcrErrors(prev => ({
         ...prev,
         bill_of_entry: 'Resubmit required',
         invoice: 'Resubmit required'
       }));
     }
+  
     if (!invoiceAwbMatch || !airwayBillMatch || invoiceAwbMatch[0] !== airwayBillMatch[0]) {
-      errors.push('AWB number in the Commercial Invoice must match AWB number in the Airway Bill.');
+      errors.push('❌ AWB number in the Invoice must match the one in the Airway Bill.');
       setOcrErrors(prev => ({
         ...prev,
         airway_bill: 'Resubmit required',
         invoice: 'Resubmit required'
       }));
     }
+    console.log('>>> Extracted INV:', invoiceMatch?.[0]);
+    console.log('>>> Extracted AWB:', invoiceAwbMatch?.[0]);
+
+  
     return errors;
   };
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
