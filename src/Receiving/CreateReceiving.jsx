@@ -42,7 +42,6 @@ const CreateReceiving = () => {
     console.log('Current formData:', formData);
     console.log('Current attachments:', attachments);
 
-
     const requiredFields = [
       'scheduledDate', 'supplierName', 'supplierNumber',
       'skuName', 'skuNumber', 'barcode',
@@ -186,9 +185,9 @@ const CreateReceiving = () => {
         <h2 className="text-xl font-semibold mb-4">Document Attachment</h2>
         <div className="space-y-4">
           {[{ label: 'Invoice', key: 'invoice' }, { label: 'Bill of Entry', key: 'bill_of_entry' }, { label: 'Airway Bill', key: 'airway_bill' }].map(({ label, key }) => (
-            <div key={key} className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-6">
-              <span className={`text-sm font-dm md:w-40 ${attachments[key] ? 'text-lime-400' : 'text-gray-400'}`}>
-                {attachments[key] ? `✅ ${label} Submitted` : label}
+            <div key={key} className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-2">
+              <span className={`text-lg font-dm md:w-40 ${attachments[key] ? 'text-lime-400' : 'text-gray-400'}`}>
+                {attachments[key] ? `✅ ${label} Submitted` : `${label}`}
               </span>
               <input
                 type="file"
@@ -223,6 +222,7 @@ const CreateReceiving = () => {
         }
         .input::placeholder {
           color: #9ca3af;
+          font-size: 1.125rem; /* Further increased font size for better readability while maintaining design */
         }
         input::file-selector-button {
           content: 'Upload File';

@@ -8,7 +8,7 @@ export default function LandingPage() {
 
   const roles = [
     { name: 'Supplier', href: '/supplier', image: '/supplier.jpg' },
-    { name: 'Warehouse Operator', href: '/dashboard', image: '/dashboard.jpg' },
+    { name: 'Warehouse Operator', href: '/dashboard', image: '/warehouse.jpg' },
     { name: 'Customer', href: '/customer', image: '/customer.jpg', position: 'right' },
   ];
 
