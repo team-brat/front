@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Tesseract from 'tesseract.js';
 import { ExclamationTriangleIcon, CameraIcon } from '@heroicons/react/20/solid';
 
-const DocumentVerification = () => {
+const Test = () => {
   const [docsUploaded, setDocsUploaded] = useState({ invoice: false, bill: false, airway: false });
   const [barcode, setBarcode] = useState('');
   const [accuracy, setAccuracy] = useState(null);
@@ -338,4 +338,4 @@ const DocumentVerification = () => {
   );
 };
 
-export default DocumentVerification;
+export default Test;

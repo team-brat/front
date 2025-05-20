@@ -11,7 +11,7 @@ import ReceivingRecords from './Receiving/ReceivingRecords';
 import SupplierDetail from './Receiving/SupplierDetail';
 import DocVerification from './Receiving/DocumentVerification';
 import ReceivingStatus from './Receiving/ReceivingStatus';
-
+import Test from './Receiving/Test';
 import TQTemplate from './TQ/TQTemplate';
 import InspectionRequest from './TQ/InspectionRequest';
 
@@ -37,6 +37,7 @@ function App() {
             <Route path="records" element={<ReceivingRecords />} />
             <Route path="supplier" element={<SupplierDetail />} />
             <Route path="documents" element={<DocVerification />} />
+            <Route path="doc-test" element={<Test />} />
             <Route path="status" element={<ReceivingStatus />} />
           </Route>
           <Route path="/tq" element={<TQTemplate />}>
