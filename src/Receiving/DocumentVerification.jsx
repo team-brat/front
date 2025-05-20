@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Tesseract from 'tesseract.js';
 import { ExclamationTriangleIcon, CameraIcon } from '@heroicons/react/20/solid';
+import ReactCrop from 'react-image-crop';
+import 'react-image-crop/dist/ReactCrop.css';
 
 const DocVerification = () => {
   const [docsUploaded, setDocsUploaded] = useState({ invoice: false, bill: false, airway: false });
@@ -21,18 +23,19 @@ const DocVerification = () => {
   const canvasRef = useRef(null);
   const streamRef = useRef(null);
   
-  // Image crop related state
+  // React Image Crop related state
   const [isCropMode, setIsCropMode] = useState(false);
   const [fullImage, setFullImage] = useState(null);
-  const [cropRect, setCropRect] = useState({ x: 0, y: 0, width: 0, height: 0 });
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragHandle, setDragHandle] = useState(null); // tl, tr, bl, br, t, r, b, l, move
-  const [dragStartPos, setDragStartPos] = useState({ x: 0, y: 0 });
-  const [dragStartRect, setDragStartRect] = useState({ x: 0, y: 0, width: 0, height: 0 });
-  const cropCanvasRef = useRef(null);
-  const cropImgRef = useRef(null);
-  const containerRef = useRef(null);
-  const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
+  const [crop, setCrop] = useState({
+    unit: '%',
+    width: 80,
+    height: 80,
+    x: 10,
+    y: 10
+  });
+  const [completedCrop, setCompletedCrop] = useState(null);
+  const imgRef = useRef(null);
+  const previewCanvasRef = useRef(null);
   
   // Open camera
   const openCamera = (docType) => {
@@ -107,271 +110,71 @@ const DocVerification = () => {
     setFullImage(imageUrl);
     closeCamera();
     setIsCropMode(true);
+    
+    // Reset crop to default
+    setCrop({
+      unit: '%',
+      width: 80,
+      height: 80,
+      x: 10,
+      y: 10
+    });
   };
   
-  // Initialize crop rectangle when image loads
-  useEffect(() => {
-    if (isCropMode && cropImgRef.current) {
-      const loadHandler = () => {
-        const img = cropImgRef.current;
-        if (!img) return;
-        
-        const imgWidth = img.clientWidth;
-        const imgHeight = img.clientHeight;
-        
-        setImageSize({ width: imgWidth, height: imgHeight });
-        
-        // Initial crop rectangle - covers most of the image
-        const initialWidth = imgWidth * 0.8;
-        const initialHeight = imgHeight * 0.8;
-        setCropRect({
-          x: (imgWidth - initialWidth) / 2,
-          y: (imgHeight - initialHeight) / 2,
-          width: initialWidth,
-          height: initialHeight
-        });
-      };
-      
-      const img = cropImgRef.current;
-      if (img.complete) {
-        loadHandler();
-      } else {
-        img.addEventListener('load', loadHandler);
-        return () => img.removeEventListener('load', loadHandler);
-      }
-    }
-  }, [isCropMode, fullImage]);
-  
-  // Determine which part of the crop rectangle is being clicked
-  const getCropHandleType = (x, y) => {
-    const handleSize = 16; // Size of corner and edge handles
-    const halfHandleSize = handleSize / 2;
-    
-    // Check corners first (they take precedence)
-    // Top-left
-    if (Math.abs(x - cropRect.x) <= halfHandleSize && Math.abs(y - cropRect.y) <= halfHandleSize)
-      return 'tl';
-    // Top-right
-    if (Math.abs(x - (cropRect.x + cropRect.width)) <= halfHandleSize && Math.abs(y - cropRect.y) <= halfHandleSize)
-      return 'tr';
-    // Bottom-left
-    if (Math.abs(x - cropRect.x) <= halfHandleSize && Math.abs(y - (cropRect.y + cropRect.height)) <= halfHandleSize)
-      return 'bl';
-    // Bottom-right
-    if (Math.abs(x - (cropRect.x + cropRect.width)) <= halfHandleSize && Math.abs(y - (cropRect.y + cropRect.height)) <= halfHandleSize)
-      return 'br';
-    
-    // Then check edges
-    // Top edge
-    if (y >= cropRect.y - halfHandleSize && y <= cropRect.y + halfHandleSize && 
-        x > cropRect.x + halfHandleSize && x < cropRect.x + cropRect.width - halfHandleSize)
-      return 't';
-    // Right edge
-    if (x >= cropRect.x + cropRect.width - halfHandleSize && x <= cropRect.x + cropRect.width + halfHandleSize &&
-        y > cropRect.y + halfHandleSize && y < cropRect.y + cropRect.height - halfHandleSize)
-      return 'r';
-    // Bottom edge
-    if (y >= cropRect.y + cropRect.height - halfHandleSize && y <= cropRect.y + cropRect.height + halfHandleSize &&
-        x > cropRect.x + halfHandleSize && x < cropRect.x + cropRect.width - halfHandleSize)
-      return 'b';
-    // Left edge
-    if (x >= cropRect.x - halfHandleSize && x <= cropRect.x + halfHandleSize &&
-        y > cropRect.y + halfHandleSize && y < cropRect.y + cropRect.height - halfHandleSize)
-      return 'l';
-      
-    // Inside the rectangle (for moving)
-    if (x > cropRect.x && x < cropRect.x + cropRect.width && 
-        y > cropRect.y && y < cropRect.y + cropRect.height)
-      return 'move';
-      
-    return null;
+  // When crop changes
+  const onCropChange = (newCrop) => {
+    setCrop(newCrop);
   };
   
-  // Mouse/Touch handlers for crop functionality
-  const handleMouseDown = (e) => {
-    e.preventDefault();
-    
-    const container = containerRef.current.getBoundingClientRect();
-    let clientX, clientY;
-    
-    // Handle both mouse and touch events
-    if (e.type === 'touchstart') {
-      clientX = e.touches[0].clientX;
-      clientY = e.touches[0].clientY;
-    } else {
-      clientX = e.clientX;
-      clientY = e.clientY;
-    }
-    
-    // Calculate position relative to container
-    const x = clientX - container.left;
-    const y = clientY - container.top;
-    
-    const handleType = getCropHandleType(x, y);
-    if (handleType) {
-      setIsDragging(true);
-      setDragHandle(handleType);
-      setDragStartPos({ x, y });
-      setDragStartRect({ ...cropRect });
-    }
+  // When crop is complete
+  const onCropComplete = (crop, percentageCrop) => {
+    setCompletedCrop(crop);
+    generatePreview(crop);
   };
   
-  const handleMouseMove = (e) => {
-    if (!isDragging) return;
-    e.preventDefault();
+  // Generate preview canvas for the crop
+  const generatePreview = (crop) => {
+    if (!crop || !imgRef.current || !previewCanvasRef.current) return;
     
-    const container = containerRef.current.getBoundingClientRect();
-    let clientX, clientY;
+    const image = imgRef.current;
+    const canvas = previewCanvasRef.current;
+    const ctx = canvas.getContext('2d');
     
-    // Handle both mouse and touch events
-    if (e.type === 'touchmove') {
-      clientX = e.touches[0].clientX;
-      clientY = e.touches[0].clientY;
-    } else {
-      clientX = e.clientX;
-      clientY = e.clientY;
-    }
+    const scaleX = image.naturalWidth / image.width;
+    const scaleY = image.naturalHeight / image.height;
     
-    // Calculate position relative to container
-    const x = clientX - container.left;
-    const y = clientY - container.top;
+    const pixelRatio = window.devicePixelRatio || 1;
     
-    // Calculate movement delta
-    const deltaX = x - dragStartPos.x;
-    const deltaY = y - dragStartPos.y;
+    canvas.width = crop.width * scaleX * pixelRatio;
+    canvas.height = crop.height * scaleY * pixelRatio;
     
-    let newRect = { ...cropRect };
+    ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+    ctx.imageSmoothingQuality = 'high';
     
-    // Handle rectangle modifications based on handle type
-    switch (dragHandle) {
-      case 'tl': // Top-left corner
-        newRect.x = Math.min(Math.max(0, dragStartRect.x + deltaX), dragStartRect.x + dragStartRect.width * 0.1);
-        newRect.y = Math.min(Math.max(0, dragStartRect.y + deltaY), dragStartRect.y + dragStartRect.height * 0.1);
-        newRect.width = Math.max(dragStartRect.width * 0.1, dragStartRect.width - deltaX);
-        newRect.height = Math.max(dragStartRect.height * 0.1, dragStartRect.height - deltaY);
-        break;
-      case 'tr': // Top-right corner
-        newRect.y = Math.min(Math.max(0, dragStartRect.y + deltaY), dragStartRect.y + dragStartRect.height * 0.1);
-        newRect.width = Math.max(dragStartRect.width * 0.1, Math.min(imageSize.width - dragStartRect.x, dragStartRect.width + deltaX));
-        newRect.height = Math.max(dragStartRect.height * 0.1, dragStartRect.height - deltaY);
-        break;
-      case 'bl': // Bottom-left corner
-        newRect.x = Math.min(Math.max(0, dragStartRect.x + deltaX), dragStartRect.x + dragStartRect.width * 0.1);
-        newRect.width = Math.max(dragStartRect.width * 0.1, dragStartRect.width - deltaX);
-        newRect.height = Math.max(dragStartRect.height * 0.1, Math.min(imageSize.height - dragStartRect.y, dragStartRect.height + deltaY));
-        break;
-      case 'br': // Bottom-right corner
-        newRect.width = Math.max(dragStartRect.width * 0.1, Math.min(imageSize.width - dragStartRect.x, dragStartRect.width + deltaX));
-        newRect.height = Math.max(dragStartRect.height * 0.1, Math.min(imageSize.height - dragStartRect.y, dragStartRect.height + deltaY));
-        break;
-      case 't': // Top edge
-        newRect.y = Math.min(Math.max(0, dragStartRect.y + deltaY), dragStartRect.y + dragStartRect.height * 0.1);
-        newRect.height = Math.max(dragStartRect.height * 0.1, dragStartRect.height - deltaY);
-        break;
-      case 'r': // Right edge
-        newRect.width = Math.max(dragStartRect.width * 0.1, Math.min(imageSize.width - dragStartRect.x, dragStartRect.width + deltaX));
-        break;
-      case 'b': // Bottom edge
-        newRect.height = Math.max(dragStartRect.height * 0.1, Math.min(imageSize.height - dragStartRect.y, dragStartRect.height + deltaY));
-        break;
-      case 'l': // Left edge
-        newRect.x = Math.min(Math.max(0, dragStartRect.x + deltaX), dragStartRect.x + dragStartRect.width * 0.1);
-        newRect.width = Math.max(dragStartRect.width * 0.1, dragStartRect.width - deltaX);
-        break;
-      case 'move': // Move entire rectangle
-        newRect.x = Math.max(0, Math.min(imageSize.width - dragStartRect.width, dragStartRect.x + deltaX));
-        newRect.y = Math.max(0, Math.min(imageSize.height - dragStartRect.height, dragStartRect.y + deltaY));
-        break;
-    }
-    
-    setCropRect(newRect);
+    ctx.drawImage(
+      image,
+      crop.x * scaleX,
+      crop.y * scaleY,
+      crop.width * scaleX,
+      crop.height * scaleY,
+      0,
+      0,
+      crop.width * scaleX,
+      crop.height * scaleY
+    );
   };
   
-  const handleMouseUp = (e) => {
-    if (isDragging) {
-      e.preventDefault();
-      setIsDragging(false);
-      setDragHandle(null);
-    }
-  };
-  
-  // Cursor style based on handle type
-  const getCursorStyle = (handleType) => {
-    switch (handleType) {
-      case 'tl':
-      case 'br':
-        return 'nwse-resize';
-      case 'tr':
-      case 'bl':
-        return 'nesw-resize';
-      case 't':
-      case 'b':
-        return 'ns-resize';
-      case 'l':
-      case 'r':
-        return 'ew-resize';
-      case 'move':
-        return 'move';
-      default:
-        return 'default';
-    }
-  };
-  
-  // Handle cursor changes on mouse movement (even when not dragging)
-  const handleMouseMoveForCursor = (e) => {
-    if (isDragging) return; // Already handled by the drag function
-    
-    const container = containerRef.current.getBoundingClientRect();
-    let clientX, clientY;
-    
-    if (e.type === 'touchmove') {
-      clientX = e.touches[0].clientX;
-      clientY = e.touches[0].clientY;
-    } else {
-      clientX = e.clientX;
-      clientY = e.clientY;
-    }
-    
-    const x = clientX - container.left;
-    const y = clientY - container.top;
-    
-    const handleType = getCropHandleType(x, y);
-    containerRef.current.style.cursor = getCursorStyle(handleType);
+  // Cancel cropping
+  const cancelCrop = () => {
+    setIsCropMode(false);
+    setFullImage(null);
   };
   
   // Apply the crop and process the image
   const applyCrop = () => {
-    if (!cropImgRef.current || !cropCanvasRef.current) return;
+    if (!completedCrop || !previewCanvasRef.current) return;
     
-    const img = cropImgRef.current;
-    const canvas = cropCanvasRef.current;
-    const context = canvas.getContext('2d');
-    
-    // Calculate the actual crop coordinates relative to the original image
-    const imgNaturalWidth = img.naturalWidth;
-    const imgNaturalHeight = img.naturalHeight;
-    const imgDisplayWidth = img.clientWidth;
-    const imgDisplayHeight = img.clientHeight;
-    
-    // Scale the crop dimensions to match the original image size
-    const scaleX = imgNaturalWidth / imgDisplayWidth;
-    const scaleY = imgNaturalHeight / imgDisplayHeight;
-    
-    const cropX = cropRect.x * scaleX;
-    const cropY = cropRect.y * scaleY;
-    const cropWidth = cropRect.width * scaleX;
-    const cropHeight = cropRect.height * scaleY;
-    
-    // Set canvas size to the crop dimensions
-    canvas.width = cropWidth;
-    canvas.height = cropHeight;
-    
-    // Draw the cropped portion to the canvas
-    context.drawImage(
-      img,
-      cropX, cropY, cropWidth, cropHeight,  // Source rectangle
-      0, 0, cropWidth, cropHeight           // Destination rectangle
-    );
+    const canvas = previewCanvasRef.current;
     
     // Convert canvas to blob
     canvas.toBlob((blob) => {
@@ -391,12 +194,6 @@ const DocVerification = () => {
       setIsCropMode(false);
       setFullImage(null);
     }, 'image/jpeg', 0.95);
-  };
-  
-  // Cancel cropping
-  const cancelCrop = () => {
-    setIsCropMode(false);
-    setFullImage(null);
   };
 
   // Clean up resources on component unmount
@@ -528,11 +325,6 @@ const DocVerification = () => {
   const getDocumentLabel = (type) => {
     return type === 'invoice' ? 'Invoice' : type === 'bill' ? 'Bill of Entry' : 'Airway Bill';
   };
-  
-  // Empty function since we don't need grid lines anymore
-  const renderCropGrid = () => {
-    return null;
-  };
 
   return (
     <div className="bg-[#1d2e24] min-h-screen p-8 rounded-2xl text-white font-sans">
@@ -571,59 +363,32 @@ const DocVerification = () => {
         </div>
       )}
       
-      {/* Crop UI */}
+      {/* Crop UI using react-image-crop */}
       {isCropMode && fullImage && (
-        <div className="fixed inset-0 z-50 bg-black flex flex-col touch-none">
-          <div 
-            ref={containerRef}
-            className="flex-1 flex items-center justify-center overflow-hidden relative"
-            onMouseDown={handleMouseDown}
-            onMouseMove={(e) => {
-              handleMouseMove(e);
-              handleMouseMoveForCursor(e);
-            }}
-            onMouseUp={handleMouseUp}
-            onTouchStart={handleMouseDown}
-            onTouchMove={handleMouseMove}
-            onTouchEnd={handleMouseUp}
-            onMouseOut={handleMouseUp}
-          >
-            <img 
-              ref={cropImgRef}
-              src={fullImage} 
-              alt="Captured" 
-              className="max-w-full max-h-[80vh] object-contain"
-            />
-            
-            {/* Crop selection box and handles */}
-            <div 
-              className="absolute border border-white"
-              style={{ 
-                left: `${cropRect.x}px`, 
-                top: `${cropRect.y}px`,
-                width: `${cropRect.width}px`,
-                height: `${cropRect.height}px`
-              }}
-            >
-              {/* Corner handles */}
-              <div className="absolute w-4 h-4 bg-white rounded-full -left-2 -top-2 shadow-md"></div>
-              <div className="absolute w-4 h-4 bg-white rounded-full -right-2 -top-2 shadow-md"></div>
-              <div className="absolute w-4 h-4 bg-white rounded-full -left-2 -bottom-2 shadow-md"></div>
-              <div className="absolute w-4 h-4 bg-white rounded-full -right-2 -bottom-2 shadow-md"></div>
-              
-              {/* Edge handles */}
-              <div className="absolute w-6 h-3 bg-white rounded-full left-1/2 -translate-x-1/2 -top-1.5 shadow-md"></div>
-              <div className="absolute w-3 h-6 bg-white rounded-full top-1/2 -translate-y-1/2 -right-1.5 shadow-md"></div>
-              <div className="absolute w-6 h-3 bg-white rounded-full left-1/2 -translate-x-1/2 -bottom-1.5 shadow-md"></div>
-              <div className="absolute w-3 h-6 bg-white rounded-full top-1/2 -translate-y-1/2 -left-1.5 shadow-md"></div>
+        <div className="fixed inset-0 z-50 bg-black flex flex-col">
+          <div className="flex-1 flex items-center justify-center overflow-auto p-2">
+            <div className="relative max-w-full">
+              <ReactCrop
+                src={fullImage}
+                crop={crop}
+                onChange={onCropChange}
+                onComplete={onCropComplete}
+                className="max-h-[70vh]"
+              >
+                <img 
+                  ref={imgRef}
+                  src={fullImage} 
+                  alt="Captured" 
+                  className="max-w-full max-h-[70vh] object-contain"
+                />
+              </ReactCrop>
+              <canvas ref={previewCanvasRef} className="hidden" />
             </div>
-            
-            <canvas ref={cropCanvasRef} className="hidden"></canvas>
           </div>
           
           <div className="fixed top-4 left-0 right-0 text-center text-white">
             <p className="bg-black bg-opacity-50 py-2 mx-auto max-w-xs rounded-full text-sm">
-              Adjust the crop area using the handles
+              Drag to adjust the crop area
             </p>
           </div>
           
@@ -638,6 +403,7 @@ const DocVerification = () => {
             <button 
               onClick={applyCrop}
               className="bg-lime-500 text-gray-900 px-6 py-3 rounded-full font-bold text-lg flex-1 max-w-[120px]"
+              disabled={!completedCrop?.width || !completedCrop?.height}
             >
               Crop
             </button>
