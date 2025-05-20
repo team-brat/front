@@ -122,8 +122,8 @@ const DocVerification = () => {
         setImageSize({ width: imgWidth, height: imgHeight });
         
         // Initial crop rectangle - covers most of the image
-        const initialWidth = Math.max(imgWidth * 0.8, 40);
-        const initialHeight = Math.max(imgHeight * 0.8, 40);
+        const initialWidth = imgWidth * 0.8;
+        const initialHeight = imgHeight * 0.8;
         setCropRect({
           x: (imgWidth - initialWidth) / 2,
           y: (imgHeight - initialHeight) / 2,
@@ -245,38 +245,38 @@ const DocVerification = () => {
     // Handle rectangle modifications based on handle type
     switch (dragHandle) {
       case 'tl': // Top-left corner
-        newRect.x = Math.min(Math.max(0, dragStartRect.x + deltaX), dragStartRect.x + dragStartRect.width - 50);
-        newRect.y = Math.min(Math.max(0, dragStartRect.y + deltaY), dragStartRect.y + dragStartRect.height - 50);
-        newRect.width = Math.max(50, dragStartRect.width - deltaX);
-        newRect.height = Math.max(50, dragStartRect.height - deltaY);
+        newRect.x = Math.min(Math.max(0, dragStartRect.x + deltaX), dragStartRect.x + dragStartRect.width * 0.1);
+        newRect.y = Math.min(Math.max(0, dragStartRect.y + deltaY), dragStartRect.y + dragStartRect.height * 0.1);
+        newRect.width = Math.max(dragStartRect.width * 0.1, dragStartRect.width - deltaX);
+        newRect.height = Math.max(dragStartRect.height * 0.1, dragStartRect.height - deltaY);
         break;
       case 'tr': // Top-right corner
-        newRect.y = Math.min(Math.max(0, dragStartRect.y + deltaY), dragStartRect.y + dragStartRect.height - 50);
-        newRect.width = Math.max(50, Math.min(imageSize.width - dragStartRect.x, dragStartRect.width + deltaX));
-        newRect.height = Math.max(50, dragStartRect.height - deltaY);
+        newRect.y = Math.min(Math.max(0, dragStartRect.y + deltaY), dragStartRect.y + dragStartRect.height * 0.1);
+        newRect.width = Math.max(dragStartRect.width * 0.1, Math.min(imageSize.width - dragStartRect.x, dragStartRect.width + deltaX));
+        newRect.height = Math.max(dragStartRect.height * 0.1, dragStartRect.height - deltaY);
         break;
       case 'bl': // Bottom-left corner
-        newRect.x = Math.min(Math.max(0, dragStartRect.x + deltaX), dragStartRect.x + dragStartRect.width - 50);
-        newRect.width = Math.max(50, dragStartRect.width - deltaX);
-        newRect.height = Math.max(50, Math.min(imageSize.height - dragStartRect.y, dragStartRect.height + deltaY));
+        newRect.x = Math.min(Math.max(0, dragStartRect.x + deltaX), dragStartRect.x + dragStartRect.width * 0.1);
+        newRect.width = Math.max(dragStartRect.width * 0.1, dragStartRect.width - deltaX);
+        newRect.height = Math.max(dragStartRect.height * 0.1, Math.min(imageSize.height - dragStartRect.y, dragStartRect.height + deltaY));
         break;
       case 'br': // Bottom-right corner
-        newRect.width = Math.max(50, Math.min(imageSize.width - dragStartRect.x, dragStartRect.width + deltaX));
-        newRect.height = Math.max(50, Math.min(imageSize.height - dragStartRect.y, dragStartRect.height + deltaY));
+        newRect.width = Math.max(dragStartRect.width * 0.1, Math.min(imageSize.width - dragStartRect.x, dragStartRect.width + deltaX));
+        newRect.height = Math.max(dragStartRect.height * 0.1, Math.min(imageSize.height - dragStartRect.y, dragStartRect.height + deltaY));
         break;
       case 't': // Top edge
-        newRect.y = Math.min(Math.max(0, dragStartRect.y + deltaY), dragStartRect.y + dragStartRect.height - 50);
-        newRect.height = Math.max(50, dragStartRect.height - deltaY);
+        newRect.y = Math.min(Math.max(0, dragStartRect.y + deltaY), dragStartRect.y + dragStartRect.height * 0.1);
+        newRect.height = Math.max(dragStartRect.height * 0.1, dragStartRect.height - deltaY);
         break;
       case 'r': // Right edge
-        newRect.width = Math.max(50, Math.min(imageSize.width - dragStartRect.x, dragStartRect.width + deltaX));
+        newRect.width = Math.max(dragStartRect.width * 0.1, Math.min(imageSize.width - dragStartRect.x, dragStartRect.width + deltaX));
         break;
       case 'b': // Bottom edge
-        newRect.height = Math.max(50, Math.min(imageSize.height - dragStartRect.y, dragStartRect.height + deltaY));
+        newRect.height = Math.max(dragStartRect.height * 0.1, Math.min(imageSize.height - dragStartRect.y, dragStartRect.height + deltaY));
         break;
       case 'l': // Left edge
-        newRect.x = Math.min(Math.max(0, dragStartRect.x + deltaX), dragStartRect.x + dragStartRect.width - 50);
-        newRect.width = Math.max(50, dragStartRect.width - deltaX);
+        newRect.x = Math.min(Math.max(0, dragStartRect.x + deltaX), dragStartRect.x + dragStartRect.width * 0.1);
+        newRect.width = Math.max(dragStartRect.width * 0.1, dragStartRect.width - deltaX);
         break;
       case 'move': // Move entire rectangle
         newRect.x = Math.max(0, Math.min(imageSize.width - dragStartRect.width, dragStartRect.x + deltaX));
@@ -573,7 +573,7 @@ const DocVerification = () => {
       
       {/* Crop UI */}
       {isCropMode && fullImage && (
-        <div className="fixed inset-0 z-50 bg-black flex flex-col">
+        <div className="fixed inset-0 z-50 bg-black flex flex-col touch-none">
           <div 
             ref={containerRef}
             className="flex-1 flex items-center justify-center overflow-hidden relative"
