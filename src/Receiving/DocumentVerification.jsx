@@ -14,189 +14,19 @@ const DocVerification = () => {
   const [perDocumentScores, setPerDocumentScores] = useState({});
   const [mismatchAlert, setMismatchAlert] = useState('');
   const [ocrProgress, setOcrProgress] = useState({ invoice: '', bill: '', airway: '' });
-  
-  // Camera and image related state
+
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [currentDocType, setCurrentDocType] = useState(null);
-  const [capturedImages, setCapturedImages] = useState({ invoice: null, bill: null, airway: null });
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const streamRef = useRef(null);
-  
-  // React Image Crop related state
   const [isCropMode, setIsCropMode] = useState(false);
   const [fullImage, setFullImage] = useState(null);
-  const [crop, setCrop] = useState({
-    unit: '%',
-    width: 80,
-    height: 80,
-    x: 10,
-    y: 10
-  });
+  const [crop, setCrop] = useState({ unit: '%', width: 80, height: 80, x: 10, y: 10 });
   const [completedCrop, setCompletedCrop] = useState(null);
   const imgRef = useRef(null);
   const previewCanvasRef = useRef(null);
-  
-  // Open camera
-  const openCamera = (docType) => {
-    setCurrentDocType(docType);
-    setIsCameraOpen(true);
-    
-    // Mobile-optimized camera settings
-    const constraints = { 
-      video: { 
-        facingMode: 'environment',
-        width: { ideal: 1280 },
-        height: { ideal: 720 },
-        aspectRatio: { ideal: 4/3 }
-      } 
-    };
-    
-    // Better compatibility for iOS Safari
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      navigator.mediaDevices.getUserMedia(constraints)
-        .then(stream => {
-          streamRef.current = stream;
-          if (videoRef.current) {
-            videoRef.current.srcObject = stream;
-            
-            // Ensure video loads properly on iOS
-            setTimeout(() => {
-              if (videoRef.current) {
-                videoRef.current.play().catch(e => console.error("Video playback error:", e));
-              }
-            }, 300);
-          }
-        })
-        .catch(err => {
-          console.error("Camera access error:", err);
-          alert("Cannot access camera. Please check permissions.");
-          setIsCameraOpen(false);
-        });
-    } else {
-      alert("Your browser doesn't support camera functionality.");
-      setIsCameraOpen(false);
-    }
-  };
 
-  // Close camera
-  const closeCamera = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-      streamRef.current = null;
-    }
-    setIsCameraOpen(false);
-  };
-
-  // Capture image and enter crop mode
-  const captureImage = () => {
-    if (!videoRef.current || !canvasRef.current) return;
-
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    const context = canvas.getContext('2d');
-    
-    // Set canvas size to match video dimensions
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    
-    // Draw the video frame to canvas
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
-    
-    // Get the image data
-    const imageUrl = canvas.toDataURL('image/jpeg', 0.95);
-    
-    // Store the full image and enter crop mode
-    setFullImage(imageUrl);
-    closeCamera();
-    setIsCropMode(true);
-    
-    // Reset crop to default
-    setCrop({
-      unit: '%',
-      width: 80,
-      height: 80,
-      x: 10,
-      y: 10
-    });
-  };
-  
-  // When crop changes
-  const onCropChange = (newCrop) => {
-    setCrop(newCrop);
-  };
-  
-  // When crop is complete
-  const onCropComplete = (crop, percentageCrop) => {
-    setCompletedCrop(crop);
-    generatePreview(crop);
-  };
-  
-  // Generate preview canvas for the crop
-  const generatePreview = (crop) => {
-    if (!crop || !imgRef.current || !previewCanvasRef.current) return;
-    
-    const image = imgRef.current;
-    const canvas = previewCanvasRef.current;
-    const ctx = canvas.getContext('2d');
-    
-    const scaleX = image.naturalWidth / image.width;
-    const scaleY = image.naturalHeight / image.height;
-    
-    const pixelRatio = window.devicePixelRatio || 1;
-    
-    canvas.width = crop.width * scaleX * pixelRatio;
-    canvas.height = crop.height * scaleY * pixelRatio;
-    
-    ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
-    ctx.imageSmoothingQuality = 'high';
-    
-    ctx.drawImage(
-      image,
-      crop.x * scaleX,
-      crop.y * scaleY,
-      crop.width * scaleX,
-      crop.height * scaleY,
-      0,
-      0,
-      crop.width * scaleX,
-      crop.height * scaleY
-    );
-  };
-  
-  // Cancel cropping
-  const cancelCrop = () => {
-    setIsCropMode(false);
-    setFullImage(null);
-  };
-  
-  // Apply the crop and process the image
-  const applyCrop = () => {
-    if (!completedCrop || !previewCanvasRef.current) return;
-    
-    const canvas = previewCanvasRef.current;
-    
-    // Convert canvas to blob
-    canvas.toBlob((blob) => {
-      // Create image URL for display
-      const imageUrl = URL.createObjectURL(blob);
-      
-      // Create file object for OCR processing
-      const file = new File([blob], `${currentDocType}.jpg`, { type: 'image/jpeg' });
-      
-      // Update state
-      setCapturedImages(prev => ({ ...prev, [currentDocType]: imageUrl }));
-      setFiles(prev => ({ ...prev, [currentDocType]: file }));
-      setDocsUploaded(prev => ({ ...prev, [currentDocType]: true }));
-      setOcrProgress(prev => ({ ...prev, [currentDocType]: 'Image captured' }));
-      
-      // Exit crop mode
-      setIsCropMode(false);
-      setFullImage(null);
-    }, 'image/jpeg', 0.95);
-  };
-
-  // Clean up resources on component unmount
   useEffect(() => {
     return () => {
       if (streamRef.current) {
@@ -205,10 +35,17 @@ const DocVerification = () => {
     };
   }, []);
 
+  const handleFileChange = (e, docType) => {
+    if (e.target.files.length > 0) {
+      const file = e.target.files[0];
+      setFiles(prev => ({ ...prev, [docType]: file }));
+      setDocsUploaded(prev => ({ ...prev, [docType]: true }));
+      setOcrProgress(prev => ({ ...prev, [docType]: 'File Uploaded' }));
+    }
+  };
+
   const jaccardSimilarity = (textA, textB) => {
-    const tokenize = text => new Set(
-      text.toLowerCase().replace(/[^a-z0-9]+/g, ' ').split(/\s+/).filter(w => w.length > 2)
-    );
+    const tokenize = text => new Set(text.toLowerCase().replace(/[^a-z0-9]+/g, ' ').split(/\s+/).filter(w => w.length > 2));
     const setA = tokenize(textA);
     const setB = tokenize(textB);
     const intersection = new Set([...setA].filter(x => setB.has(x)));
@@ -216,297 +53,255 @@ const DocVerification = () => {
     return intersection.size / union.size;
   };
 
-  // This function makes the API call to fetch document data and then processes OCR
   const handleConfirm = async () => {
-    if (!barcode) {
-      setBarcodeError(true);
-      return;
-    }
+    if (!barcode) return setBarcodeError(true);
     setBarcodeError(false);
 
     try {
-      // Loading indicators
-      setPerDocumentScores({}); // Reset previous scores
-      
-      // Fetch document data from API
-      const response = await fetch(`https://z0nql7r236.execute-api.us-east-2.amazonaws.com/dev/receiving-orders/by-barcode/${barcode}`);
-      if (!response.ok) throw new Error('Failed to fetch order details');
-      const data = await response.json();
+      const res = await fetch(`https://z0nql7r236.execute-api.us-east-2.amazonaws.com/dev/receiving-orders/by-barcode/${barcode}`);
+      const data = await res.json();
       const urls = data.documents.map(doc => ({ type: doc.document_type, url: doc.download_url }));
 
-      // Process OCR for each document type
       const ocrResults = {};
       for (const { type, url } of urls) {
-        const key = type.toLowerCase().includes('airway') ? 'airway'
-           : type.toLowerCase().includes('invoice') ? 'invoice'
-           : type.toLowerCase().includes('bill') ? 'bill'
-           : null;
-
-        if (key) {
-          setOcrProgress(prev => ({ ...prev, [key]: 'Processing OCR...' }));
-          try {
-            const ocrResult = await Tesseract.recognize(url, 'eng', {
-              logger: m => console.log(m) // Optional: add progress logging
-            });
-            ocrResults[key] = ocrResult.data.text;
-            setOcrProgress(prev => ({ ...prev, [key]: 'Submitted' }));
-          } catch (err) {
-            console.error(`OCR error for ${key}:`, err);
-            setOcrProgress(prev => ({ ...prev, [key]: 'OCR Failed' }));
-          }
-        }
+        const key = type.toLowerCase().includes('airway') ? 'airway' : type.toLowerCase().includes('invoice') ? 'invoice' : type.toLowerCase().includes('bill') ? 'bill' : null;
+        if (!key) continue;
+        setOcrProgress(prev => ({ ...prev, [key]: 'Performing OCR...' }));
+        const ocrResult = await Tesseract.recognize(url, 'eng');
+        ocrResults[key] = ocrResult.data.text;
+        setOcrProgress(prev => ({ ...prev, [key]: 'Submitted' }));
       }
-      
+
       setDocumentOcrResults(ocrResults);
-      
-      // Now verify user uploaded documents against the fetched ones
-      if (Object.keys(ocrResults).length > 0) {
-        await verifyUploadedDocuments(ocrResults);
-      } else {
-        console.error("No OCR results found from API");
-        alert("Could not retrieve document data. Please try a different barcode.");
-      }
-
-    } catch (error) {
-      console.error('API or OCR error:', error);
-      alert("Error processing request. Please try again.");
+      await verifyUploadedDocuments(ocrResults);
+    } catch (err) {
+      console.error(err);
     }
   };
 
-  // This function compares user uploaded documents with reference documents
   const verifyUploadedDocuments = async (ocrReference) => {
     const results = {};
     let matchCount = 0;
 
     for (const [docType, file] of Object.entries(files)) {
-      // Skip if no file uploaded or no reference document
       if (!file || !ocrReference[docType]) continue;
-      
       try {
         setOcrProgress(prev => ({ ...prev, [docType]: 'Calculating...' }));
-        
-        // Process OCR on uploaded file
-        const uploadedText = await Tesseract.recognize(file, 'eng', {
-          logger: m => console.log(m) // Optional: add progress logging
-        }).then(ocrResult => ocrResult.data.text);
-        
-        const referenceText = ocrReference[docType];
-        
-        // Calculate similarity score
-        const score = jaccardSimilarity(uploadedText, referenceText);
-        const matched = score >= 0.7; // 70% threshold for match
-
+        const uploadedText = await Tesseract.recognize(file, 'eng').then(r => r.data.text);
+        const score = jaccardSimilarity(uploadedText, ocrReference[docType]);
+        const matched = score >= 0.7;
         results[docType] = { score, matched };
         if (matched) matchCount++;
         setOcrProgress(prev => ({ ...prev, [docType]: 'Submitted' }));
       } catch (err) {
-        console.error(`OCR failed for ${docType}:`, err);
+        console.error(err);
         results[docType] = { matched: false, score: 0 };
         setOcrProgress(prev => ({ ...prev, [docType]: 'Failed' }));
       }
     }
 
-    // Calculate overall accuracy
-    const total = Object.values(files).filter(Boolean).length;
-    setAccuracy(total ? Math.round((matchCount / total) * 100) : 0);
-
-    // Generate mismatch alert if any documents don't match
+    setAccuracy(Object.values(files).filter(Boolean).length ? Math.round((matchCount / Object.values(files).filter(Boolean).length) * 100) : 0);
     const mismatches = Object.entries(results).filter(([_, r]) => !r.matched);
-    if (mismatches.length > 0) {
-      const wrongDocs = mismatches.map(([k, r]) => `${k}: ${Math.round(r.score * 100)}%`).join(', ');
-      setMismatchAlert(`Mismatched documents: ${wrongDocs}`);
-    } else {
-      setMismatchAlert('');
-    }
-    
+    setMismatchAlert(mismatches.length ? `Mismatched: ${mismatches.map(([k, r]) => `${k}: ${Math.round(r.score * 100)}%`).join(', ')}` : '');
     setPerDocumentScores(results);
   };
 
+  const openCamera = (docType) => {
+    setCurrentDocType(docType);
+    setIsCameraOpen(true);
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+      .then(stream => {
+        streamRef.current = stream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.play();
+        }
+      })
+      .catch(() => alert("Camera access denied."));
+  };
+
+  const closeCamera = () => {
+    streamRef.current?.getTracks().forEach(track => track.stop());
+    setIsCameraOpen(false);
+  };
+
+  const captureImage = () => {
+    if (!videoRef.current || !canvasRef.current) return;
+    const canvas = canvasRef.current;
+    canvas.width = videoRef.current.videoWidth;
+    canvas.height = videoRef.current.videoHeight;
+    canvas.getContext('2d').drawImage(videoRef.current, 0, 0);
+    setFullImage(canvas.toDataURL('image/jpeg', 0.95));
+    setIsCameraOpen(false);
+    setIsCropMode(true);
+  };
+
+  const applyCrop = () => {
+    if (!completedCrop || !previewCanvasRef.current) return;
+    previewCanvasRef.current.toBlob(blob => {
+      const file = new File([blob], `${currentDocType}.jpg`, { type: 'image/jpeg' });
+      setFiles(prev => ({ ...prev, [currentDocType]: file }));
+      setDocsUploaded(prev => ({ ...prev, [currentDocType]: true }));
+      setOcrProgress(prev => ({ ...prev, [currentDocType]: 'Captured' }));
+      setIsCropMode(false);
+      setFullImage(null);
+    }, 'image/jpeg', 0.95);
+  };
+
+  const getLabel = (type) => type === 'invoice' ? 'Invoice' : type === 'bill' ? 'Bill of Entry' : 'Airway Bill';
   const getDocumentLabel = (type) => {
     return type === 'invoice' ? 'Invoice' : type === 'bill' ? 'Bill of Entry' : 'Airway Bill';
   };
 
   return (
-    <div className="bg-[#1d2e24] min-h-screen p-8 rounded-2xl text-white font-sans">
-      <h2 className="text-3xl font-bold mb-8 tracking-tight">Document Verification</h2>
-      
-      {/* Camera UI */}
+    <div className="bg-[#1d2e24] min-h-screen p-8 text-white font-sans">
+      <h2 className="text-3xl font-bold mb-8">Document Verification</h2>
+
       {isCameraOpen && (
-        <div className="fixed inset-0 z-50 bg-black flex flex-col">
-          <div className="flex-1 flex items-center justify-center overflow-hidden">
-            <div className="relative w-full max-w-lg max-h-[70vh]">
-              <video 
-                ref={videoRef} 
-                autoPlay 
-                playsInline 
-                className="w-full h-auto max-h-[70vh] object-contain rounded-lg"
-              />
-              <canvas ref={canvasRef} className="hidden" />
-            </div>
-          </div>
-          
-          {/* Fixed bottom button area */}
-          <div className="fixed bottom-0 left-0 right-0 p-4 bg-black bg-opacity-75 flex justify-center space-x-4 safe-bottom">
-            <button 
-              onClick={closeCamera}
-              className="bg-gray-700 text-white px-6 py-3 rounded-full font-bold text-lg flex-1 max-w-[120px]"
-            >
-              Cancel
-            </button>
-            <button 
-              onClick={captureImage}
-              className="bg-lime-500 text-gray-900 px-6 py-3 rounded-full font-bold text-lg flex-1 max-w-[120px]"
-            >
-              Capture
-            </button>
+        <div className="fixed inset-0 bg-black z-50 flex flex-col items-center justify-center">
+          <video ref={videoRef} autoPlay playsInline className="w-full max-w-lg" />
+          <canvas ref={canvasRef} className="hidden" />
+          <div className="flex mt-4 space-x-4">
+            <button onClick={closeCamera} className="bg-gray-700 px-4 py-2 rounded">Cancel</button>
+            <button onClick={captureImage} className="bg-lime-500 px-4 py-2 rounded">Capture</button>
           </div>
         </div>
       )}
-      
-      {/* Crop UI using react-image-crop */}
-      {isCropMode && fullImage && (
-        <div className="fixed inset-0 z-50 bg-black flex flex-col">
-          <div className="flex-1 flex items-center justify-center overflow-auto p-2">
-            <div className="relative max-w-full">
-              <ReactCrop
-                src={fullImage}
-                crop={crop}
-                onChange={onCropChange}
-                onComplete={onCropComplete}
-                className="max-h-[70vh]"
-              >
-                <img 
-                  ref={imgRef}
-                  src={fullImage} 
-                  alt="Captured" 
-                  className="max-w-full max-h-[70vh] object-contain"
-                />
-              </ReactCrop>
-              <canvas ref={previewCanvasRef} className="hidden" />
-            </div>
-          </div>
-          
-          <div className="fixed top-4 left-0 right-0 text-center text-white">
-            <p className="bg-black bg-opacity-50 py-2 mx-auto max-w-xs rounded-full text-sm">
-              Drag to adjust the crop area
-            </p>
-          </div>
-          
-          {/* Crop button area */}
-          <div className="fixed bottom-0 left-0 right-0 p-4 bg-black bg-opacity-75 flex justify-center space-x-4 safe-bottom">
-            <button 
-              onClick={cancelCrop}
-              className="bg-gray-700 text-white px-6 py-3 rounded-full font-bold text-lg flex-1 max-w-[120px]"
-            >
-              Cancel
-            </button>
-            <button 
-              onClick={applyCrop}
-              className="bg-lime-500 text-gray-900 px-6 py-3 rounded-full font-bold text-lg flex-1 max-w-[120px]"
-              disabled={!completedCrop?.width || !completedCrop?.height}
-            >
-              Crop
-            </button>
+
+      {isCropMode && (
+        <div className="fixed inset-0 bg-black z-50 p-4 flex flex-col items-center justify-center">
+          <ReactCrop src={fullImage} crop={crop} onChange={c => setCrop(c)} onComplete={setCompletedCrop}>
+            <img ref={imgRef} src={fullImage} alt="Captured" />
+          </ReactCrop>
+          <canvas ref={previewCanvasRef} className="hidden" />
+          <div className="flex mt-4 space-x-4">
+            <button onClick={() => setIsCropMode(false)} className="bg-gray-700 px-4 py-2 rounded">Cancel</button>
+            <button onClick={applyCrop} className="bg-lime-500 px-4 py-2 rounded">Crop</button>
           </div>
         </div>
       )}
-      
-      <div className="space-y-6 mb-10">
-        <div className={`bg-[#152b22] p-6 rounded-xl border ${barcodeError ? 'border-red-500' : 'border-lime-400/20'}`}>
-          <h3 className="text-lg font-semibold mb-4 text-lime-300">Enter Barcode or Serial #</h3>
+
+      <div className="space-y-6">
+        <div className={`p-4 rounded-xl ${barcodeError ? 'border-red-500' : 'border-lime-400/20'} border bg-[#152b22]`}>
+          <h3 className="text-lg font-semibold mb-2 text-lime-300">Enter Barcode</h3>
           <input
-            type="text"
             value={barcode}
             onChange={(e) => setBarcode(e.target.value)}
-            placeholder="Enter barcode or serial number..."
-            className={`input w-full ${barcodeError ? 'border-red-500' : ''}`}
+            className="input w-full"
+            placeholder="Enter barcode"
           />
-          {barcodeError && <p className="text-red-400 text-xs mt-2">Barcode is required</p>}
+          {barcodeError && <p className="text-red-400 text-sm mt-1">Barcode required</p>}
         </div>
 
         <div className="bg-[#152b22] p-6 rounded-xl border border-lime-400/20">
-          <h3 className="text-lg font-semibold text-lime-300 mb-4 pb-4">Capture Required Documents</h3>
-          {['invoice', 'bill', 'airway'].map((type) => (
-            <div key={type} className="flex flex-col mb-6">
-              <div className="flex items-center mb-2">
-                <span className="text-sm font-semibold">
+          <h3 className="text-lg font-semibold text-lime-300 mb-4">Upload or Capture Documents</h3>
+          {
+            ['invoice', 'bill', 'airway'].map((type) => (
+              <div key={type} className="mb-5">
+                <div className="text-sm font-semibold mb-2">
                   {getDocumentLabel(type)}{' '}
-                  {ocrProgress[type] && <span className="text-yellow-300 ml-2">({ocrProgress[type]})</span>}
-                </span>
-              </div>
-              
-              {capturedImages[type] ? (
-                <div className="relative w-full rounded-lg overflow-hidden border border-lime-400/30">
-                  <img 
-                    src={capturedImages[type]} 
-                    alt={`Captured ${type}`} 
-                    className="w-full h-40 object-cover"
-                  />
-                  <button 
+                  {ocrProgress[type] && (
+                    <span className="text-yellow-300 ml-2">({ocrProgress[type]})</span>
+                  )}
+                </div>
+            
+                <div className="grid sm:grid-cols-1 md:grid-cols-2 gap-3 items-center">
+                  <label className="relative cursor-pointer block w-full">
+                    <input
+                      type="file"
+                      onChange={(e) => handleFileChange(e, type)}
+                      className="sr-only"
+                    />
+                    <span className="inline-block w-full text-center bg-lime-800/50 hover:bg-lime-700 text-white font-semibold py-2 px-4 rounded-xl transition">
+                      Upload File
+                    </span>
+                  </label>
+            
+                  <button
                     onClick={() => openCamera(type)}
-                    className="absolute bottom-3 right-3 bg-black bg-opacity-60 p-2 rounded-full"
+                    className="w-full bg-lime-500 hover:bg-lime-400 text-gray-900 font-semibold py-2 px-4 rounded-xl transition flex items-center justify-center"
                   >
-                    <CameraIcon className="h-6 w-6 text-white" />
+                    <CameraIcon className="h-5 w-5 mr-2" />
+                    Capture
                   </button>
                 </div>
-              ) : (
-                <button
-                  onClick={() => openCamera(type)}
-                  className="w-full h-40 flex flex-col items-center justify-center border-2 border-dashed border-lime-400/30 rounded-lg hover:border-lime-400/50 transition"
-                >
-                  <CameraIcon className="h-10 w-10 text-lime-400/50 mb-2" />
-                  <span className="text-sm text-lime-400/70">Click to capture</span>
-                </button>
-              )}
-            </div>
-          ))}
-
-          <div className="flex justify-end">
+              </div>
+            ))
+            
+            
+          }
+          
+          <div className="text-right mt-4">
             <button
               onClick={handleConfirm}
-              className="bg-lime-400 hover:bg-lime-300 text-gray-900 font-semibold px-6 py-1.5 rounded-xl text-sm transition">
+              className="bg-lime-400 hover:bg-lime-300 text-black font-semibold px-6 py-2 rounded-lg shadow-sm"
+            >
               Confirm
             </button>
           </div>
         </div>
+        <div className="bg-[#13291e] rounded-xl p-4 mb-6 border border-lime-400/20">
+  <h4 className="text-lime-300 text-sm font-semibold mb-2">Verification Status</h4>
+  {['invoice', 'bill', 'airway'].map((type) => {
+    const status = ocrProgress[type];
+    const label = getDocumentLabel(type);
+    let color = 'text-gray-300';
+    let message = 'Not Started';
 
-        <div className="mt-8 text-center">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 justify-center items-start text-sm">
-            {['invoice', 'bill', 'airway'].map((type) => {
-              const doc = perDocumentScores[type];
-              const uploaded = docsUploaded[type];
-              let content;
-              if (!uploaded) content = <p className="text-lg text-gray-400">Waiting for file...</p>;
-              else if (!doc) content = <p className="text-lg text-yellow-300">Calculating...</p>;
-              else content = <p className="text-lg font-bold text-lime-300">{Math.round(doc.score * 100)}% match</p>;
-              const borderColor = doc ? (doc.matched ? 'border-lime-400 bg-[#1f352b]/80' : 'border-red-400 bg-[#2b1f1f]/80') : 'border-gray-900 bg-[#1a1a1a]/80';
-              return (
-                <div key={type} className={`p-4 rounded-xl border ${borderColor} shadow`}>
-                  <h4 className="text-base font-semibold mb-1 text-white">{getDocumentLabel(type)}</h4>
-                  {content}
-                </div>
-              );
-            })}
-          </div>
+    if (status.includes('File')) {
+      color = 'text-blue-300';
+      message = 'Document Uploaded';
+    } else if (status.toLowerCase().includes('ocr')) {
+      color = 'text-yellow-300';
+      message = 'Running OCR';
+    } else if (status.toLowerCase().includes('calculating')) {
+      color = 'text-orange-300';
+      message = 'Calculating Match Score';
+    } else if (status.toLowerCase().includes('submitted')) {
+      color = 'text-green-300';
+      message = 'Match Calculated';
+    } else if (status.toLowerCase().includes('failed')) {
+      color = 'text-red-400';
+      message = 'Failed to process';
+    }
 
-          {mismatchAlert && (
-            <div className="border-l-4 border-yellow-400 bg-yellow-50 p-4 mb-4 mt-6">
-              <div className="flex">
-                <div className="shrink-0">
-                  <ExclamationTriangleIcon aria-hidden="true" className="w-5 h-5 text-yellow-400" />
-                </div>
-                <div className="ml-3">
-                  <p className="text-sm text-yellow-700 whitespace-pre-line">{mismatchAlert}</p>
-                </div>
+    return (
+      <div key={type} className="flex justify-between text-sm py-1 px-2">
+        <span className="text-white">{label}</span>
+        <span className={`${color} font-medium`}>{message}</span>
+      </div>
+    );
+  })}
+</div>
+
+
+        <div className="grid md:grid-cols-3 gap-4 mt-6">
+          {['invoice', 'bill', 'airway'].map((type) => {
+            const doc = perDocumentScores[type];
+            const uploaded = docsUploaded[type];
+            const label = getLabel(type);
+            const content = !uploaded
+              ? 'Not Started'
+              : !doc
+              ? 'In Progress'
+              : `${Math.round(doc.score * 100)}% match`;
+            const color = doc ? (doc.matched ? 'border-lime-400' : 'border-red-400') : 'border-gray-400';
+            const textColor = content === 'Not Started' || content === 'In Progress' ? 'text-[#1a1a1a]' : 'text-white';
+            return (
+              <div key={type} className={`p-4 rounded-xl border ${color} bg-[#1a1a1a] text-center`}>
+                <h4 className="font-semibold mb-2 text-white">{label}</h4>
+                <p className={`text-lg ${textColor}`}>{content}</p>
               </div>
-            </div>
-          )}
-
-          <div className="mt-12 flex justify-center gap-6">
-            <button className="bg-lime-500 hover:bg-lime-400 text-gray-900 font-bold px-6 py-2 rounded-xl text-lg">Approved</button>
-            <button className="bg-red-600 hover:bg-red-500 text-white font-bold px-6 py-2 rounded-xl text-lg">Declined</button>
-          </div>
+            );
+          })}
         </div>
+
+        {mismatchAlert && (
+          <div className="p-4 bg-yellow-100 text-yellow-800 border-l-4 border-yellow-500 mt-6 flex items-start">
+            <ExclamationTriangleIcon className="h-5 w-5 mr-2 mt-0.5" />
+            <span>{mismatchAlert}</span>
+          </div>
+        )}
       </div>
 
       <style jsx>{`
