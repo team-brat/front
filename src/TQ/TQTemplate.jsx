@@ -10,11 +10,11 @@ const TQTemplate = () => {
       <Header />
       <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
         <Sidebar tabs={[
+            //{ name: 'Inspection Records', href: '/tq/inspection-records' },
             { name: 'Inspection Request', href: '/tq/inspection-request' },
-            { name: 'Inspection', href: '/ta/inspection' },
-            { name: 'Inspection Records', href: '/ta/inspection-records' },
-            { name: 'RFID Scan', href: '/ta/rfid-scan' },
-            { name: 'GRN', href: '/ta/grn' },
+            { name: 'Inspection', href: '/tq/inspection' },
+            { name: 'RFID Scan', href: '/tq/rfid-scan' },
+            { name: 'GRN', href: '/tq/grn' },
           ]} />
         <div className="col-span-4">
           <Outlet />

@@ -1,21 +1,56 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { UserAuthContext } from '../App';
+import { useContext } from 'react';
 
 export default function SignInPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const { setWorkId, setUserAuth } = useContext(UserAuthContext);
 
-  const handleSignUp = (e) => {
+  const handleSignUp = async (e) => {
     e.preventDefault();
     if (password !== confirmPassword) {
       alert('Passwords do not match!');
       return;
     }
-    // TODO: 회원가입 처리 로직 추가
-    console.log('Signing up with:', email, password);
-    navigate('/dashboard'); // 회원가입 성공 후 이동할 페이지
+
+    try {
+      const API_URL = "https://example.com/api/signup"; // Replace with actual signup API URL
+      const payload = {
+        email: email,
+        password: password
+      };
+
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await response.json();
+      console.log('Signup response:', data);
+
+      if (data.success) {
+        console.log('Signing up with:', email, password);
+        setWorkId(data.worker_id); // Set the worker_id using setWorkId
+        setUserAuth(data.role); // Set the role using setUserAuth
+        if (data.role === 'manager') {
+          navigate('/dashboard'); // 회원가입 성공 후 이동할 페이지
+        } else if (data.role === 'operator') {
+          navigate('/receiving/create'); // 회원가입 성공 후 이동할 페이지
+        }
+      } else {
+        alert('Signup failed!');
+      }
+    } catch (error) {
+      console.error('Error during signup:', error);
+      alert('Signup failed!');
+    }
   };
 
   return (
