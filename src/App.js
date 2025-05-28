@@ -36,10 +36,11 @@ function RequireAuth({ children }) {
 function App() {
   const [userAuth, setUserAuth] = useState(null); // State to hold user authentication info
   const [username, setUsername] = useState(''); // State to hold username
-  const [workerId, setWorkId] = useState(''); // State to hold workId
+  const [userRoleId, setUserRoleId] = useState(''); // State to hold userRoleId
+  const [workId, setWorkId] = useState(''); // State to hold workId
 
   return (
-    <UserAuthContext.Provider value={{ userAuth, setUserAuth, username, setUsername, workerId, setWorkId }}>
+    <UserAuthContext.Provider value={{ userAuth, setUserAuth, username, setUsername, workId, setWorkId }}>
       <Router>
         <Routes>
           <Route path="/" element={<LandingPage />} />
@@ -57,7 +58,7 @@ function App() {
             <Route path="status" element={<RequireAuth><ReceivingStatus /></RequireAuth>} />
           </Route>
           <Route path="/tq" element={<RequireAuth><TQTemplate /></RequireAuth>}>
-            {/* <Route path="inspection-request" element={<InspectionRecords />} /> */}
+            <Route path="inspection-request" element={<InspectionRecords />} />
             <Route path="inspection-records" element={<RequireAuth><InspectionRecords/></RequireAuth>} />
             <Route path="inspection" element={<RequireAuth><Inspection/></RequireAuth>} />
             <Route path="rfid-scan" element={<RequireAuth><div>RFID Scan</div></RequireAuth>} />

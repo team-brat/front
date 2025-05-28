@@ -58,7 +58,7 @@ const Inspection = () => {
     <div className="bg-[#1d2e24] min-h-screen p-8 text-white font-sans">
       <h2 className="text-3xl font-bold mb-6 tracking-tight">Inspection</h2>
 
-      <div className="grid gap-6 bg-[#152b22] border border-lime-400/20 p-6 rounded-xl">
+      <div className="grid gap-4 bg-[#152b22] border border-lime-400/20 p-6 rounded-xl">
         <div>
           <label className="block text-sm text-lime-300 mb-1">Worker ID</label>
           <input disabled value={workerId} className="input w-full opacity-60" />
@@ -74,24 +74,18 @@ const Inspection = () => {
           />
         </div>
 
-        <div className="flex gap-4">
+        <div className="flex gap-2 mt-8">
           <button
             onClick={handleApproved}
-            className="bg-lime-400 hover:bg-lime-300 text-gray-900 font-bold px-6 py-2 rounded-xl"
+            className="bg-lime-400 hover:bg-lime-300 text-gray-900 font-bold w-32 py-1.5 rounded-lg"
           >
             Approved
-          </button>
-          <button
-            onClick={handleReportDefect}
-            className="bg-red-600 hover:bg-red-500 text-white font-bold px-6 py-2 rounded-xl"
-          >
-            Report Defect
           </button>
         </div>
       </div>
 
       {/* Defect Info */}
-      <div className="mt-8 bg-[#152b22] border border-red-400/20 p-6 rounded-xl">
+      <div className="mt-6 bg-[#152b22] border border-red-400/20 p-6 rounded-xl">
         <h3 className="text-red-400 font-semibold text-lg mb-3">Report Defect</h3>
         <label className="block text-sm mb-1 text-gray-300">Defect Reason</label>
         <select
@@ -100,9 +94,9 @@ const Inspection = () => {
           onChange={(e) => setDefectReason(e.target.value)}
         >
           <option value="">-- Select reason --</option>
-          <option value="파손">파손</option>
-          <option value="개수 불일치">개수 불일치</option>
-          <option value="바코드 불일치">바코드 불일치</option>
+          <option value="Damaged">Damaged</option>
+          <option value="Quantity Mismatch">Quantity Mismatch</option>
+          <option value="Barcode Mismatch">Barcode Mismatch</option>
         </select>
 
         <label className="block text-sm mb-1 text-gray-300">Proof of Defect (image)</label>
@@ -112,11 +106,20 @@ const Inspection = () => {
           onChange={(e) => setImageFile(e.target.files[0])}
           className="file:mr-4 file:py-1 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-[#334d3d] file:text-lime-300 hover:file:bg-lime-400/20 text-sm"
         />
+
+        <div className="flex gap-2 mt-4">
+          <button
+            onClick={handleReportDefect}
+            className="bg-red-600 hover:bg-red-500 text-white font-bold w-32 py-1.5 rounded-lg"
+          >
+            Report Defect
+          </button>
+        </div>
       </div>
 
       {/* Result */}
       {resultMessage && (
-        <div className="mt-10 bg-[#0f1f17] border border-white/10 rounded-xl p-6 text-center">
+        <div className="mt-8 bg-[#0f1f17] border border-white/10 rounded-xl p-6 text-center">
           <p
             className={`text-lg whitespace-pre-wrap font-bold ${
               resultType === 'approved'

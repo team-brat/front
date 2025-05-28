@@ -5,7 +5,7 @@ import { ExclamationTriangleIcon } from '@heroicons/react/20/solid';
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const { setUserAuth, setUsername } = useContext(UserAuthContext); // Use the context
+  const { setUserAuth, setUsername, setWorkId } = useContext(UserAuthContext); // Corrected the context usage
   const [user_id, setUserId] = useState('');
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState(false);
@@ -36,6 +36,13 @@ export default function LoginPage() {
         console.log('Login successful! User role:', data.role);
         setUsername(user_id);
         setUserAuth(data.role);
+        if (data.role === 'operator') {
+          setWorkId(data.worker_id); // Corrected the function call
+          console.log('Work ID:', data.worker_id);
+        } else if (data.role === 'supplier') {
+          setWorkId(data.supplier_id); // Corrected the function call
+          console.log('Work ID:', data.supplier_id);
+        }
         if (data.role === 'operator') {
           navigate('/dashboard');
         } else if (data.role === 'supplier') {

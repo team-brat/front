@@ -1,54 +1,60 @@
 import React, { useState, useContext } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { ChevronDownIcon } from '@heroicons/react/16/solid';
-import { UserAuthContext } from '../../App'; // Import the context
+import { UserAuthContext } from '../../App';
 
-const Sidebar = ({tabs}) => {
+const Sidebar = ({ tabs, header }) => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
   const currentTab = tabs.find(tab => tab.href === location.pathname);
-  const { userAuth } = useContext(UserAuthContext);
+  const { userAuth, workId } = useContext(UserAuthContext);
 
-  // Filter out "Doc Verification" tab if username is "supplier"
-  const filteredTabs = userAuth === "supplier" ? tabs.filter(tab => tab.name !== "Doc Verification") : tabs;
+  const filteredTabs = userAuth === "supplier"
+    ? tabs.filter(tab => tab.name !== "Doc Verification")
+    : tabs;
 
-  // Modify tab names based on userAuth
   const modifiedTabs = filteredTabs.map(tab => {
     if (userAuth === "supplier") {
-      if (tab.name === "Supplier Details") {
-        return { ...tab, name: "My Supplier Detail" };
-      } else if (tab.name === "Receiving Status") {
-        return { ...tab, name: "My Receiving Status" };
-      } else if (tab.name === "Receiving Records") {
-        return { ...tab, name: "My Receiving Records" };
-      }
+      if (tab.name === "Supplier Details") return { ...tab, name: "My Supplier Detail" };
+      if (tab.name === "Receiving Status") return { ...tab, name: "My Receiving Status" };
+      if (tab.name === "Receiving Records") return { ...tab, name: "My Receiving Records" };
     }
     return tab;
   });
 
   return (
-    <div className="w-full xl1280:w-60 relative">
+    <aside className="w-full xl1280:w-64 px-4 py-6">
 
-      {/* Mobile View (Dropdown) */}
+      {/* Header */}
+      {header && (
+        <div className="text-center mb-6">
+          <h2 className="text-xl font-bold text-[#1f2937]">{header}</h2>
+          <div className="h-1 w-16 bg-[#00695c] mx-auto mt-2 rounded-full"></div>
+        </div>
+      )}
+
+      {/* Mobile Dropdown */}
       <div className="block xl1280:hidden relative">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="w-full flex items-center justify-between py-2 px-4 bg-[#23352b] text-white font-medium rounded-xl"
+          className="w-full flex items-center justify-between py-3 px-4 bg-white text-gray-800 font-semibold rounded-lg border border-gray-300 shadow-sm"
         >
           <span>{currentTab?.name || 'Select Tab'}</span>
           <ChevronDownIcon className={`w-5 h-5 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
         </button>
 
         {isOpen && (
-          <div className="absolute top-full left-0 right-0 mt-1 z-50 bg-[#1d2e24] rounded-xl shadow-xl border border-lime-500/20">
-            {modifiedTabs.map((tab) => (
+          <div className="absolute top-full left-0 right-0 mt-2 z-50 bg-white rounded-lg shadow-lg border border-gray-200">
+            {modifiedTabs.map(tab => (
               <NavLink
                 key={tab.href}
                 to={tab.href}
                 onClick={() => setIsOpen(false)}
                 className={({ isActive }) =>
-                  `block w-full py-2 px-4 text-left font-medium text-white transition
-                  ${isActive ? 'bg-[#23352b]' : 'hover:bg-[#23352b]'}`
+                  `block py-3 px-4 text-md text-left transition rounded-md 
+                   ${isActive
+                     ? 'bg-[#e0f2f1] text-[#4a7c59] font-semibold'
+                     : 'hover:bg-gray-100 text-gray-800'}`
                 }
               >
                 {tab.name}
@@ -58,23 +64,24 @@ const Sidebar = ({tabs}) => {
         )}
       </div>
 
-      {/* Desktop View (Sidebar) */}
-      <div className="hidden xl1280:block space-y-2 mt-4">
-
-        {modifiedTabs.map((tab) => (
+      {/* Desktop Sidebar */}
+      <nav className="hidden xl1280:flex flex-col gap-3 mt-8">
+        {modifiedTabs.map(tab => (
           <NavLink
             key={tab.href}
             to={tab.href}
             className={({ isActive }) =>
-              `block w-full py-2 px-4 text-left font-medium rounded-xl text-white transition
-              ${isActive ? 'bg-[#23352b]' : 'bg-[#1d2e24] hover:bg-[#23352b]'}`
+              `py-3 px-5 text-md font-medium rounded-xl transition text-left tracking-tight
+              ${isActive
+                ? 'bg-[#e0f2f1] text-[#4a7c59] font-semibold shadow-md border border-[#b2dfdb]'
+                : 'bg-[#f8fafc] text-gray-600 hover:bg-[#f1f5f9] hover:text-[#4a7c59]'}`
             }
           >
             {tab.name}
           </NavLink>
         ))}
-      </div>
-    </div>
+      </nav>
+    </aside>
   );
 };
 

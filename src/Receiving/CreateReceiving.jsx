@@ -132,10 +132,10 @@ const CreateReceiving = () => {
     console.log('Current attachments:', attachments);
   
     const requiredFields = [
-      'scheduledDate', 'supplierName', 'supplierNumber',
-      'skuName', 'skuNumber', 'barcode',
-      'length', 'width', 'height', 'depth', 'volume', 'weight',
-      'shipmentNumber', 'truckNumber', 'driverContact'
+      'ScheduledDate', 'SupplierName', 'SupplierNumber',
+      'SKUName', 'SKUNumber', 'Barcode',
+      'Length', 'Width', 'Height', 'Depth', 'Volume', 'Weight',
+      'ShipmentNumber', 'TruckNumber', 'DriverContact'
     ];
   
     const errors = {};
@@ -245,34 +245,42 @@ const CreateReceiving = () => {
   
 
   return (
-    <form onSubmit={handleSubmit} className="bg-[#1d2e24] p-8 rounded-2xl space-y-8 w-full">
+    <form onSubmit={handleSubmit} className="p-10 space-y-10 w-full">
       <div>
-        <h1 className="text-3xl font-bold mb-8 tracking-tight font-grotesk">Creating Receiving</h1>
-        <h2 className="text-xl font-semibold mb-4">Request Details</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="space-y-1">
+        <div className="pb-8 mb-10 border-b border-gray-200">
+          <h1 className="text-4xl font-bold tracking-tight text-gray-900 mb-6">Creating Receiving</h1>
+        </div>
+        <div className="pb-8 mb-10 border-b border-gray-200">
+          <h2 className="text-xl font-semibold text-gray-700 mb-4">Request Details</h2>
+          
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-2">
             <input className={`input ${formErrors['scheduledDate'] ? 'border-red-500' : ''}`} type="date" name="scheduledDate" onChange={handleChange} />
-            {formErrors['scheduledDate'] && <p className="text-red-400 text-xs">Required</p>}
+            {formErrors['scheduledDate'] && <p className="text-red-400 text-base">Required</p>}
           </div>
-          {['supplierName', 'supplierNumber', 'skuName', 'skuNumber', 'barcode'].map((field) => (
-            <div key={field} className="space-y-1">
+          {['SupplierName', 'SupplierNumber', 'SkuName', 'SkuNumber', 'Barcode'].map((field) => (
+            <div key={field} className="space-y-2">
               <input
                 className={`input ${formErrors[field] ? 'border-red-500' : ''}`}
                 name={field}
                 placeholder={field.replace(/([A-Z])/g, ' $1')}
                 onChange={handleChange}
               />
-              {formErrors[field] && <p className="text-red-400 text-xs">Required</p>}
+              {formErrors[field] && <p className="text-red-400 text-base">Required</p>}
             </div>
           ))}
+        </div>
         </div>
       </div>
 
       <div>
-        <h2 className="text-xl font-semibold mb-4">SKU Information</h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          {['length', 'width', 'height', 'depth', 'volume', 'weight'].map((field) => (
-            <div key={field} className="space-y-1">
+      <div className="pb-8 mb-10 border-b border-gray-200">
+
+        <h2 className="text-xl font-semibold mb-6 text-[#374151]">SKU Information</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {['Length', 'Width', 'Height', 'Depth', 'Volume', 'Weight'].map((field) => (
+            <div key={field} className="space-y-2">
               <input
                 className={`input ${formErrors[field] ? 'border-red-500' : ''}`}
                 name={field}
@@ -281,60 +289,65 @@ const CreateReceiving = () => {
                 placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
                 onChange={handleChange}
               />
-              {formErrors[field] && <p className="text-red-400 text-xs">Required</p>}
+              {formErrors[field] && <p className="text-red-400 text-base">Required</p>}
             </div>
           ))}
+        </div>
         </div>
       </div>
 
       <div>
-        <h2 className="text-xl font-semibold mb-4">Shipment Information</h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          {['shipmentNumber', 'truckNumber', 'driverContact'].map((field) => (
-            <div key={field} className="space-y-1">
+      <div className="pb-8 mb-10 border-b border-gray-200">
+        <h2 className="text-xl font-semibold mb-6 text-[#374151]">Shipment Information</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {['ShipmentNumber', 'TruckNumber', 'DriverContact'].map((field) => (
+            <div key={field} className="space-y-2">
               <input
                 className={`input ${formErrors[field] ? 'border-red-500' : ''}`}
                 name={field}
                 placeholder={field.replace(/([A-Z])/g, ' $1')}
                 onChange={handleChange}
               />
-              {formErrors[field] && <p className="text-red-400 text-xs">Required</p>}
+              {formErrors[field] && <p className="text-red-400 text-base">Required</p>}
             </div>
           ))}
+        </div>
         </div>
       </div>
 
       <div>
-        <h2 className="text-xl font-semibold mb-4">Document Attachment</h2>
-        <div className="space-y-4">
-          {[{ label: 'Invoice', key: 'invoice', emoji: '📄' }, { label: 'Bill of Entry', key: 'bill_of_entry', emoji: '📄' }, { label: 'Airway Bill', key: 'airway_bill', emoji: '📄' }].map(({ label, key, emoji }) => (
-            <div key={key} className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-2">
-              <span className={`text-lg font-dm md:w-40 ${attachments[key] ? (ocrErrors[key] ? 'text-red-400' : 'text-lime-400') : 'text-gray-400'}`}>
+      <div className="pb-8 mb-10 border-b border-gray-200">
+        <h2 className="text-xl font-semibold mb-6 text-[#374151]">Document Attachment</h2>
+        <div className="space-y-6">
+          {[{ label: 'Invoice', key: 'invoice', emoji: '' }, { label: 'Bill of Entry', key: 'bill_of_entry', emoji: '' }, { label: 'Airway Bill', key: 'airway_bill', emoji: '' }].map(({ label, key, emoji }) => (
+            <div key={key} className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <span className={`text-xl font-dm md:w-40 ${attachments[key] ? (ocrErrors[key] ? 'text-red-400' : 'text-lime-400') : 'text-gray-400'}`}>
                 {uploadingStatus[key] ? <span className="text-blue-400">{`${emoji} ${label} Uploading...`}</span> : (attachments[key] ? (ocrErrors[key] ? `🚨 ${label} Resubmit required` : `✅ ${label} Submitted`) : `${emoji} ${label}`)}
               </span>
-              {ocrErrors[key] && <p className="text-red-400 text-sm md:w-40 ml-48 mt-2"><i>{ocrErrors[key]}...</i></p>}
+              {ocrErrors[key] && <p className="text-red-400 text-base md:w-40 ml-48 mt-2"><i>{ocrErrors[key]}...</i></p>}
               <input
                 type="file"
                 accept=".png,.jpg,.jpeg"
                 onChange={(e) => handleFileChange(e, key)}
-                className="block w-full md:w-auto text-sm text-white file:mr-3 file:py-1 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-[#365c46] file:text-white hover:file:bg-[#3e6e53]"
+                className="block w-full md:w-auto text-base text-white file:mr-3 file:py-2 file:px-5 file:rounded-lg file:border-0 file:text-base file:font-medium file:bg-gray-400 file:text-white hover:file:bg-gray-600"
                 lang="en"
               />
             </div>
           ))}
         </div>
+        </div>
       </div>
 
       {alertErrors.length > 0 && (
-        <div className="rounded-md bg-red-50 p-4 mb-4 relative">
+        <div className="rounded-md bg-red-50 p-6 mb-6 relative">
           <div className="flex">
             <div className="shrink-0">
-              <XCircleIcon aria-hidden="true" className="h-5 w-5 text-red-400" />
+              <XCircleIcon aria-hidden="true" className="h-6 w-6 text-red-400" />
             </div>
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800">There were errors with your submission</h3>
-              <div className="mt-2 text-sm text-red-700">
-                <ul role="list" className="list-disc space-y-1 pl-5">
+            <div className="ml-4">
+              <h3 className="text-lg font-medium text-red-700">There were errors with your submission</h3>
+              <div className="mt-3 text-lg text-red-700">
+                <ul role="list" className="list-disc space-y-2 pl-6">
                   {alertErrors.map((error, index) => (
                     <li key={index}>{error}</li>
                   ))}
@@ -342,44 +355,43 @@ const CreateReceiving = () => {
               </div>
             </div>
           </div>
-          <button onClick={handleAlertClose} className="absolute top-2 right-2 text-black hover:text-gray-700">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+          <button onClick={handleAlertClose} className="block w-full md:w-auto text-lg text-gray-700 file:mr-3 file:py-2 file:px-5 file:rounded-lg file:border file:border-gray-300 file:text-lg file:font-medium file:bg-white file:text-gray-700 hover:file:bg-gray-100">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M10 9.293l4.646-4.647a.5.5 0 01.708.708L10.707 10l4.647 4.646a.5.5 0 01-.708.708L10 10.707l-4.646 4.647a.5.5 0 01-.708-.708L9.293 10 4.646 5.354a.5.5 0 11.708-.708L10 9.293z" clipRule="evenodd" />
             </svg>
           </button>
         </div>
       )}
 
-      <div className="pt-4 text-right">
+      <div className="pt-6 text-right">
         <button
           type="submit"
-          className="bg-lime-400 hover:bg-lime-300 text-gray-900 font-semibold px-5 py-2 rounded-xl shadow transition text-sm"
+          className="bg-gray-400 hover:bg-gray-600 text-white font-semibold px-6 py-3 rounded-xl shadow-lg transition text-lg"
         >
           Submit
         </button>
       </div>
 
       <style jsx>{`
-        .input {
-          background-color: #152b22;
-          padding: 0.75rem 1rem;
-          border-radius: 0.5rem;
-          border: 1px solid #334d3d;
-          color: white;
-          font-size: 0.875rem;
-          width: 100%;
-        }
-        .input::placeholder {
-          color: #9ca3af;
-          font-size: 1.125rem;
-        }
-        input::file-selector-button {
-          content: 'Upload File';
-        }
-        input[type="date"] {
-          color-scheme: dark;
-        }
-      `}</style>
+  .input {
+    background-color: #ffffff;
+    padding: 1rem 1.25rem;
+    border-radius: 0.5rem;
+    border: 1px solid #d1d5db;
+    color: #111827;
+    font-size: 1rem;
+    width: 100%;
+    font-family: 'Inter', sans-serif;
+  }
+  .input::placeholder {
+    color: #6b7280;
+    font-size: 1.3rem; 
+  }
+  input[type="date"] {
+    color-scheme: light;
+  }
+`}</style>
+
     </form>
   );
 };
