@@ -134,20 +134,6 @@
       ]
     },
     {
-      "supplierName": "Urban Wear",
-      "supplierNumber": "SUP432",
-      "skuName": "Hoodie",
-      "skuNumber": "SKU5678",
-      "barcode": "BC89012345",
-      "contact": "010-1234-5678",
-      "inbound": [
-        { "date": "2025-01-29", "sku": "SKU5678", "qty": 220 }
-      ],
-      "outbound": [
-        { "date": "2025-02-14", "sku": "SKU5678", "qty": 85 }
-      ]
-    },
-    {
       "supplierName": "Formal Attire",
       "supplierNumber": "SUP765",
       "skuName": "Business Suit",

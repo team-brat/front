@@ -20,7 +20,7 @@ const ReceivingTemplate = () => {
             { name: 'Doc Verification', href: '/receiving/documents' },
             { name: 'Receiving Status', href: '/receiving/status' },
           ]} />
-        <div className="col-span-4 bg-white shadow-md rounded-xl p-10 mr-7 mb-20">
+        <div className="col-span-4 bg-white shadow-md rounded-xl p-10 mr-7 mb-20 mt-5">
           <Outlet />
         </div>
       </div>

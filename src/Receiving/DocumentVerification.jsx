@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import Tesseract from 'tesseract.js';
 import { ExclamationTriangleIcon, CameraIcon } from '@heroicons/react/20/solid';
@@ -154,169 +155,94 @@ const DocVerification = () => {
   };
 
   return (
-    <div className="bg-[#1d2e24] min-h-screen p-8 text-white font-sans">
-      <h2 className="text-3xl font-bold mb-8">Document Verification</h2>
+    <div className="max-w-6xl mx-auto px-6 py-12">
+      <h2 className="text-3xl font-bold text-gray-800 mb-10">Document Verification</h2>
 
-      {isCameraOpen && (
-        <div className="fixed inset-0 bg-black z-50 flex flex-col items-center justify-center">
-          <video ref={videoRef} autoPlay playsInline className="w-full max-w-lg" />
-          <canvas ref={canvasRef} className="hidden" />
-          <div className="flex mt-4 space-x-4">
-            <button onClick={closeCamera} className="bg-gray-700 px-4 py-2 rounded">Cancel</button>
-            <button onClick={captureImage} className="bg-lime-500 px-4 py-2 rounded">Capture</button>
-          </div>
-        </div>
-      )}
+      <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm mb-10">
+        <h3 className="text-lg font-semibold text-gray-800 mb-2">Enter Barcode</h3>
+        <input
+          value={barcode}
+          onChange={(e) => setBarcode(e.target.value)}
+          placeholder="Enter barcode"
+          className={`w-full border px-4 py-3 rounded-lg text-gray-800 text-sm shadow-sm ${barcodeError ? 'border-red-400' : 'border-gray-300'}`}
+        />
+        {barcodeError && <p className="text-red-500 text-sm mt-2">Barcode required</p>}
+      </div>
 
-      {isCropMode && (
-        <div className="fixed inset-0 bg-black z-50 p-4 flex flex-col items-center justify-center">
-          <ReactCrop src={fullImage} crop={crop} onChange={c => setCrop(c)} onComplete={setCompletedCrop}>
-            <img ref={imgRef} src={fullImage} alt="Captured" />
-          </ReactCrop>
-          <canvas ref={previewCanvasRef} className="hidden" />
-          <div className="flex mt-4 space-x-4">
-            <button onClick={() => setIsCropMode(false)} className="bg-gray-700 px-4 py-2 rounded">Cancel</button>
-            <button onClick={applyCrop} className="bg-lime-500 px-4 py-2 rounded">Crop</button>
-          </div>
-        </div>
-      )}
-
-      <div className="space-y-6">
-        <div className={`p-4 rounded-xl ${barcodeError ? 'border-red-500' : 'border-lime-400/20'} border bg-[#152b22]`}>
-          <h3 className="text-lg font-semibold mb-2 text-lime-300">Enter Barcode</h3>
-          <input
-            value={barcode}
-            onChange={(e) => setBarcode(e.target.value)}
-            className="input w-full"
-            placeholder="Enter barcode"
-          />
-          {barcodeError && <p className="text-red-400 text-sm mt-1">Barcode required</p>}
-        </div>
-
-        <div className="bg-[#152b22] p-6 rounded-xl border border-lime-400/20">
-          <h3 className="text-lg font-semibold text-lime-300 mb-4">Upload or Capture Documents</h3>
-          {
-            ['invoice', 'bill', 'airway'].map((type) => (
-              <div key={type} className="mb-5">
-                <div className="text-sm font-semibold mb-2">
-                  {getDocumentLabel(type)}{' '}
-                  {ocrProgress[type] && (
-                    <span className="text-yellow-300 ml-2">({ocrProgress[type]})</span>
-                  )}
-                </div>
-            
-                <div className="grid sm:grid-cols-1 md:grid-cols-2 gap-3 items-center">
-                  <label className="relative cursor-pointer block w-full">
-                    <input
-                      type="file"
-                      onChange={(e) => handleFileChange(e, type)}
-                      className="sr-only"
-                    />
-                    <span className="inline-block w-full text-center bg-lime-800/50 hover:bg-lime-700 text-white font-semibold py-2 px-4 rounded-xl transition">
-                      Upload File
-                    </span>
-                  </label>
-            
-                  <button
-                    onClick={() => openCamera(type)}
-                    className="w-full bg-lime-500 hover:bg-lime-400 text-gray-900 font-semibold py-2 px-4 rounded-xl transition flex items-center justify-center"
-                  >
-                    <CameraIcon className="h-5 w-5 mr-2" />
-                    Capture
-                  </button>
-                </div>
+      <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm mb-10">
+        <h3 className="text-lg font-semibold text-gray-800 mb-6">Upload or Capture Documents</h3>
+        <div className="space-y-6">
+          {['invoice', 'bill', 'airway'].map((type) => (
+            <div key={type} className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-700">{getDocumentLabel(type)}</span>
+                {ocrProgress[type] && (
+                  <span className="text-xs text-gray-500">({ocrProgress[type]})</span>
+                )}
               </div>
-            ))
-            
-            
-          }
-          
-          <div className="text-right mt-4">
+              <div className="flex gap-4">
+                <label className="w-full cursor-pointer text-center bg-lime-100 hover:bg-lime-200 text-lime-800 font-semibold py-2 rounded-lg border border-lime-300">
+                  <input type="file" className="sr-only" onChange={(e) => handleFileChange(e, type)} />
+                  Upload File
+                </label>
+                <button
+                  onClick={() => openCamera(type)}
+                  className="w-full bg-lime-500 hover:bg-lime-400 text-white font-semibold py-2 rounded-lg flex items-center justify-center"
+                >
+                  <CameraIcon className="w-5 h-5 mr-2" /> Capture
+                </button>
+              </div>
+            </div>
+          ))}
+          <div className="text-right">
             <button
               onClick={handleConfirm}
-              className="bg-lime-400 hover:bg-lime-300 text-black font-semibold px-6 py-2 rounded-lg shadow-sm"
+              className="inline-block bg-lime-500 hover:bg-lime-400 text-white font-semibold px-6 py-2 rounded-lg shadow-sm"
             >
               Confirm
             </button>
           </div>
         </div>
-        <div className="bg-[#13291e] rounded-xl p-4 mb-6 border border-lime-400/20">
-  <h4 className="text-lime-300 text-sm font-semibold mb-2">Verification Status</h4>
-  {['invoice', 'bill', 'airway'].map((type) => {
-    const status = ocrProgress[type];
-    const label = getDocumentLabel(type);
-    let color = 'text-gray-300';
-    let message = 'Not Started';
-
-    if (status.includes('File')) {
-      color = 'text-blue-300';
-      message = 'Document Uploaded';
-    } else if (status.toLowerCase().includes('ocr')) {
-      color = 'text-yellow-300';
-      message = 'Running OCR';
-    } else if (status.toLowerCase().includes('calculating')) {
-      color = 'text-orange-300';
-      message = 'Calculating Match Score';
-    } else if (status.toLowerCase().includes('submitted')) {
-      color = 'text-green-300';
-      message = 'Match Calculated';
-    } else if (status.toLowerCase().includes('failed')) {
-      color = 'text-red-400';
-      message = 'Failed to process';
-    }
-
-    return (
-      <div key={type} className="flex justify-between text-sm py-1 px-2">
-        <span className="text-white">{label}</span>
-        <span className={`${color} font-medium`}>{message}</span>
       </div>
-    );
-  })}
-</div>
 
-
-        <div className="grid md:grid-cols-3 gap-4 mt-6">
+      <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm mb-10">
+        <h4 className="text-sm font-semibold text-gray-700 mb-4">Verification Status</h4>
+        <div className="divide-y divide-gray-100 text-sm">
           {['invoice', 'bill', 'airway'].map((type) => {
-            const doc = perDocumentScores[type];
-            const uploaded = docsUploaded[type];
-            const label = getLabel(type);
-            const content = !uploaded
-              ? 'Not Started'
-              : !doc
-              ? 'In Progress'
-              : `${Math.round(doc.score * 100)}% match`;
-            const color = doc ? (doc.matched ? 'border-lime-400' : 'border-red-400') : 'border-gray-400';
-            const textColor = content === 'Not Started' || content === 'In Progress' ? 'text-[#1a1a1a]' : 'text-white';
+            const status = ocrProgress[type] || 'Not Started';
+            const label = getDocumentLabel(type);
             return (
-              <div key={type} className={`p-4 rounded-xl border ${color} bg-[#1a1a1a] text-center`}>
-                <h4 className="font-semibold mb-2 text-white">{label}</h4>
-                <p className={`text-lg ${textColor}`}>{content}</p>
+              <div key={type} className="flex justify-between py-2">
+                <span className="text-gray-600">{label}</span>
+                <span className="text-gray-800 font-medium">{status}</span>
               </div>
             );
           })}
         </div>
-
-        {mismatchAlert && (
-          <div className="p-4 bg-yellow-100 text-yellow-800 border-l-4 border-yellow-500 mt-6 flex items-start">
-            <ExclamationTriangleIcon className="h-5 w-5 mr-2 mt-0.5" />
-            <span>{mismatchAlert}</span>
-          </div>
-        )}
       </div>
 
-      <style jsx>{`
-        .input {
-          background-color: #0f1f17;
-          padding: 0.6rem 1rem;
-          border-radius: 0.5rem;
-          border: 1px solid #334d3d;
-          color: white;
-          font-size: 0.875rem;
-        }
-        .input::placeholder {
-          color: #9ca3af;
-        }
-      `}</style>
+      <div className="grid md:grid-cols-3 gap-6">
+        {['invoice', 'bill', 'airway'].map((type) => {
+          const doc = perDocumentScores[type];
+          const uploaded = docsUploaded[type];
+          const label = getLabel(type);
+          const content = !uploaded ? 'Not Started' : !doc ? 'In Progress' : `${Math.round(doc.score * 100)}% match`;
+          const color = doc ? (doc.matched ? 'border-lime-400 bg-lime-50' : 'border-red-400 bg-red-50') : 'border-gray-300 bg-gray-50';
+          return (
+            <div key={type} className={`p-4 rounded-xl border text-center ${color}`}>
+              <h4 className="font-semibold text-gray-800 mb-1">{label}</h4>
+              <p className="text-lg font-bold text-gray-900">{content}</p>
+            </div>
+          );
+        })}
+      </div>
+
+      {mismatchAlert && (
+        <div className="mt-8 flex items-start bg-yellow-50 text-yellow-800 p-4 rounded-lg border-l-4 border-yellow-500">
+          <ExclamationTriangleIcon className="h-5 w-5 mr-2 mt-0.5" />
+          <span>{mismatchAlert}</span>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,6 +1,7 @@
 import React, { useState, useContext } from 'react';
-import { UserAuthContext } from '../App'; // Import the context
+import { UserAuthContext } from '../App';
 import mockData from '../sample-data/mock-receiving-records.json';
+import { MagnifyingGlassIcon } from '@heroicons/react/20/solid';
 
 const ReceivingRecords = () => {
   const { userAuth } = useContext(UserAuthContext);
@@ -23,87 +24,104 @@ const ReceivingRecords = () => {
   });
 
   return (
-    <div className="bg-[#1d2e24] min-h-screen p-8 rounded-2xl text-white font-sans">
-      <h2 className="text-3xl font-bold mb-8 tracking-tight font-grotesk">
-        Receiving Records
-      </h2>
+    <div className="p-12 space-y-12 w-full">
+      <div>
+        <div className="pb-10 mb-12 border-b border-gray-200">
+          <h1 className="text-4xl font-bold tracking-tight text-gray-900 mb-8">Receiving Records</h1>
+        </div>
 
-      <div className="flex flex-col md:flex-row md:items-center gap-4 mb-6">
-        <input
-          type="text"
-          placeholder="Search by any field..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="bg-[#152b22] px-4 py-2 rounded-full text-sm border border-[#334d3d] text-white w-full md:w-1/2 focus:outline-none focus:ring-2 focus:ring-lime-400/60"
-        />
-        <button
-          onClick={() => setQuery('')}
-          className="bg-lime-400 hover:bg-lime-300 text-gray-900 font-semibold px-5 py-2 rounded-full shadow-md text-sm"
-        >
-          Clear
-        </button>
-      </div>
+        <div className="w-full mb-8">
+          <div className="relative w-full">
+            <MagnifyingGlassIcon className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 transform -translate-y-1/2 pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Search records..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="pl-12 pr-4 py-3 w-full rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 text-base shadow-sm bg-white transition"
+            />
+          </div>
+        </div>
 
-      <div className="overflow-x-auto rounded-xl border border-lime-500/10 shadow-lg">
-        <table className="min-w-full text-sm text-left">
-          <thead className="bg-[#2a3d33] text-lime-300">
-            <tr>
-              <th className="px-6 py-3 font-medium font-grotesk">Received Date</th>
-              <th className="px-6 py-3 font-medium font-grotesk">Supplier Name</th>
-              <th className="px-6 py-3 font-medium font-grotesk">Supplier #</th>
-              <th className="px-6 py-3 font-medium font-grotesk">SKU Name</th>
-              <th className="px-6 py-3 font-medium font-grotesk">SKU #</th>
-              <th className="px-6 py-3 font-medium font-grotesk">Serial / Barcode #</th>
-              <th className="px-6 py-3 font-medium font-grotesk">GRN #</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-[#334d3d]">
-            {filteredData.map((row, idx) => (
-              <React.Fragment key={idx}>
-                <tr
-                  onClick={() => toggleRow(idx)}
-                  className="odd:bg-[#1a2a21] even:bg-[#1f3328] hover:bg-[#294636] transition duration-150 cursor-pointer"
-                >
-                  <td className="px-6 py-3 whitespace-nowrap">{row.receivedDate}</td>
-                  <td className="px-6 py-3 whitespace-nowrap">{row.supplierName}</td>
-                  <td className="px-6 py-3 whitespace-nowrap">{row.supplierNumber}</td>
-                  <td className="px-6 py-3 whitespace-nowrap">{row.skuName}</td>
-                  <td className="px-6 py-3 whitespace-nowrap">{row.skuNumber}</td>
-                  <td className="px-6 py-3 whitespace-nowrap">{row.barcode}</td>
-                  <td className="px-6 py-3 whitespace-nowrap">{row.grn}</td>
-                </tr>
-                {expandedRows.includes(idx) && (
-                  <tr className="bg-[#2a3d33]">
-                    <td colSpan="7" className="px-6 py-3">
-                      <div className="text-white">
-                        <div className="flex justify-between">
-                          <span>HS Code: 6109.10</span>
-                          <span>Description: Name: Cottom T-Shirt / Size: S</span>
-                          <span>Quantity: 500</span>
-                          <span>Price: 30</span>
-                        </div>
-                        <div className="flex justify-between mt-2">
-                          <span>HS Code: 6109.10</span>
-                          <span>Description: Name: Cottom T-Shirt / Size: M</span>
-                          <span>Quantity: 700</span>
-                          <span>Price: 31</span>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                )}
-              </React.Fragment>
-            ))}
-            {filteredData.length === 0 && (
+
+        <div className="overflow-x-auto rounded-xl border border-gray-200 shadow-lg">
+          <table className="min-w-full text-base text-left">
+            <thead className="bg-gray-50">
               <tr>
-                <td colSpan="7" className="text-center text-gray-400 py-6">
-                  No matching records found.
-                </td>
+                <th className="px-8 py-4 font-medium text-gray-700">Date</th>
+                <th className="px-8 py-4 font-medium text-gray-700">Supplier Name</th>
+                <th className="px-8 py-4 font-medium text-gray-700">Sup #</th>
+                <th className="px-8 py-4 font-medium text-gray-700">SKU Name</th>
+                <th className="px-8 py-4 font-medium text-gray-700">SKU #</th>
+                <th className="px-8 py-4 font-medium text-gray-700">Serial / Barcode #</th>
+                <th className="px-8 py-4 font-medium text-gray-700 pr-12">GRN #</th>
               </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {filteredData.map((row, idx) => (
+                <React.Fragment key={idx}>
+                  <tr
+                    onClick={() => toggleRow(idx)}
+                    className="bg-white hover:bg-gray-50 transition duration-150 cursor-pointer"
+                  >
+                    <td className="px-8 py-4 whitespace-nowrap text-gray-900">{row.receivedDate}</td>
+                    <td className="px-8 py-4 whitespace-nowrap text-gray-900">{row.supplierName}</td>
+                    <td className="px-8 py-4 whitespace-nowrap text-gray-900">{row.supplierNumber}</td>
+                    <td className="px-8 py-4 whitespace-nowrap text-gray-900">{row.skuName}</td>
+                    <td className="px-8 py-4 whitespace-nowrap text-gray-900">{row.skuNumber}</td>
+                    <td className="px-8 py-4 whitespace-nowrap text-gray-900">{row.barcode}</td>
+                    <td className="px-8 py-4 whitespace-nowrap text-gray-900 pr-12">{row.grn}</td>
+                  </tr>
+                  {expandedRows.includes(idx) && (
+                    <tr className="bg-gray-50">
+                      <td colSpan="7" className="px-8 py-6">
+                        <div className="text-gray-900 space-y-4">
+                          <div className="flex justify-between items-center">
+                            <span className="px-4">HS Code: 6109.10</span>
+                            <span className="px-4">Description: Name: Cottom T-Shirt / Size: S</span>
+                            <span className="px-4">Quantity: 500</span>
+                            <span className="px-4">Price: 30</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="px-4">HS Code: 6109.10</span>
+                            <span className="px-4">Description: Name: Cottom T-Shirt / Size: M</span>
+                            <span className="px-4">Quantity: 700</span>
+                            <span className="px-4">Price: 31</span>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
+              ))}
+              {filteredData.length === 0 && (
+                <tr>
+                  <td colSpan="7" className="text-center text-gray-500 py-8">
+                    No matching records found.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
+
+      <style jsx>{`
+        .input {
+          background-color: #ffffff;
+          padding: 1.25rem 1.5rem;
+          border-radius: 0.75rem;
+          border: 1px solid #d1d5db;
+          color: #111827;
+          font-size: 1.125rem;
+          width: 100%;
+          font-family: 'Inter', sans-serif;
+        }
+        .input::placeholder {
+          color: #6b7280;
+          font-size: 1.3rem; 
+        }
+      `}</style>
     </div>
   );
 };

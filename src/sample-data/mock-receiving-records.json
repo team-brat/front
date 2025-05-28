@@ -2,7 +2,7 @@
   {
     "receivedDate": "2025-01-28",
     "supplierName": "Dr. Sue's Fashion World",
-    "supplierNumber": "SUP123",
+    "supplierNumber": "SUP001",
     "skuName": "Winter Jacket",
     "skuNumber": "SKU9876",
     "barcode": "BC12345678", 
@@ -11,7 +11,7 @@
   {
     "receivedDate": "2025-01-29",
     "supplierName": "Denim Co",
-    "supplierNumber": "SUP456", 
+    "supplierNumber": "SUP002", 
     "skuName": "Slim Fit Jeans",
     "skuNumber": "SKU5432",
     "barcode": "BC87654321",
@@ -20,7 +20,7 @@
   {
     "receivedDate": "2025-01-30",
     "supplierName": "Cotton Kings",
-    "supplierNumber": "SUP789",
+    "supplierNumber": "SUP003",
     "skuName": "Cotton T-Shirt",
     "skuNumber": "SKU1234",
     "barcode": "BC98765432",
@@ -29,7 +29,7 @@
   {
     "receivedDate": "2025-02-01",
     "supplierName": "Luxury Brands",
-    "supplierNumber": "SUP234",
+    "supplierNumber": "SUP004",
     "skuName": "Designer Dress",
     "skuNumber": "SKU7890",
     "barcode": "BC23456789",
@@ -38,7 +38,7 @@
   {
     "receivedDate": "2025-02-02",
     "supplierName": "Sports Wear",
-    "supplierNumber": "SUP567",
+    "supplierNumber": "SUP005",
     "skuName": "Athletic Shorts",
     "skuNumber": "SKU4567",
     "barcode": "BC34567890",
@@ -47,7 +47,7 @@
   {
     "receivedDate": "2025-02-03",
     "supplierName": "Fashion Hub",
-    "supplierNumber": "SUP890",
+    "supplierNumber": "SUP006",
     "skuName": "Silk Blouse",
     "skuNumber": "SKU2345",
     "barcode": "BC45678901",
@@ -56,7 +56,7 @@
   {
     "receivedDate": "2025-02-04",
     "supplierName": "Casual Wear",
-    "supplierNumber": "SUP345",
+    "supplierNumber": "SUP007",
     "skuName": "Cargo Pants",
     "skuNumber": "SKU8901",
     "barcode": "BC56789012",
@@ -65,7 +65,7 @@
   {
     "receivedDate": "2025-02-05",
     "supplierName": "Knit World",
-    "supplierNumber": "SUP678",
+    "supplierNumber": "SUP008",
     "skuName": "Wool Sweater",
     "skuNumber": "SKU3456",
     "barcode": "BC67890123",
@@ -74,25 +74,16 @@
   {
     "receivedDate": "2025-02-06",
     "supplierName": "Style Co",
-    "supplierNumber": "SUP901",
+    "supplierNumber": "SUP009",
     "skuName": "Leather Jacket",
     "skuNumber": "SKU9012",
     "barcode": "BC78901234",
     "grn": "GRN009"
   },
   {
-    "receivedDate": "2025-02-07",
-    "supplierName": "Urban Wear",
-    "supplierNumber": "SUP432",
-    "skuName": "Hoodie",
-    "skuNumber": "SKU5678",
-    "barcode": "BC89012345",
-    "grn": "GRN010"
-  },
-  {
     "receivedDate": "2025-02-08",
     "supplierName": "Formal Attire",
-    "supplierNumber": "SUP765",
+    "supplierNumber": "SUP011",
     "skuName": "Business Suit",
     "skuNumber": "SKU0123",
     "barcode": "BC90123456",
@@ -101,7 +92,7 @@
   {
     "receivedDate": "2025-02-09",
     "supplierName": "Outdoor Gear",
-    "supplierNumber": "SUP098",
+    "supplierNumber": "SUP012",
     "skuName": "Rain Coat",
     "skuNumber": "SKU6789",
     "barcode": "BC01234567",
@@ -110,7 +101,7 @@
   {
     "receivedDate": "2025-02-10",
     "supplierName": "Kids Fashion",
-    "supplierNumber": "SUP321",
+    "supplierNumber": "SUP013",
     "skuName": "Children's Dress",
     "skuNumber": "SKU1357",
     "barcode": "BC13579246",
@@ -119,7 +110,7 @@
   {
     "receivedDate": "2025-02-11",
     "supplierName": "Fitness Wear",
-    "supplierNumber": "SUP654",
+    "supplierNumber": "SUP014",
     "skuName": "Yoga Pants",
     "skuNumber": "SKU2468",
     "barcode": "BC24680135",
@@ -128,7 +119,7 @@
   {
     "receivedDate": "2025-02-12",
     "supplierName": "Beach Wear",
-    "supplierNumber": "SUP987",
+    "supplierNumber": "SUP015",
     "skuName": "Swimsuit",
     "skuNumber": "SKU3579",
     "barcode": "BC35791246",
@@ -137,7 +128,7 @@
   {
     "receivedDate": "2025-02-13",
     "supplierName": "Vintage Fashion",
-    "supplierNumber": "SUP210",
+    "supplierNumber": "SUP016",
     "skuName": "Retro Dress",
     "skuNumber": "SKU4680",
     "barcode": "BC46802357",
@@ -146,7 +137,7 @@
   {
     "receivedDate": "2025-02-14",
     "supplierName": "Sock Factory",
-    "supplierNumber": "SUP543",
+    "supplierNumber": "SUP017",
     "skuName": "Wool Socks",
     "skuNumber": "SKU5791",
     "barcode": "BC57913468",
@@ -155,7 +146,7 @@
   {
     "receivedDate": "2025-02-15",
     "supplierName": "Accessories Co",
-    "supplierNumber": "SUP876",
+    "supplierNumber": "SUP018",
     "skuName": "Scarf Set",
     "skuNumber": "SKU6802",
     "barcode": "BC68024579",
@@ -164,7 +155,7 @@
   {
     "receivedDate": "2025-02-16",
     "supplierName": "Uniform World",
-    "supplierNumber": "SUP109",
+    "supplierNumber": "SUP019",
     "skuName": "Work Uniform",
     "skuNumber": "SKU7913",
     "barcode": "BC79135680",
@@ -173,7 +164,7 @@
   {
     "receivedDate": "2025-02-17",
     "supplierName": "Winter Wear",
-    "supplierNumber": "SUP432",
+    "supplierNumber": "SUP020",
     "skuName": "Snow Pants",
     "skuNumber": "SKU8024",
     "barcode": "BC80246791",
@@ -182,7 +173,7 @@
   {
     "receivedDate": "2025-02-18",
     "supplierName": "Summer Style",
-    "supplierNumber": "SUP765",
+    "supplierNumber": "SUP021",
     "skuName": "Sun Dress",
     "skuNumber": "SKU9135",
     "barcode": "BC91357802",
@@ -191,7 +182,7 @@
   {
     "receivedDate": "2025-02-19",
     "supplierName": "Baby Clothes",
-    "supplierNumber": "SUP098",
+    "supplierNumber": "SUP022",
     "skuName": "Baby Onesie",
     "skuNumber": "SKU0246",
     "barcode": "BC02468913",
@@ -200,7 +191,7 @@
   {
     "receivedDate": "2025-02-20",
     "supplierName": "Eco Fashion",
-    "supplierNumber": "SUP321",
+    "supplierNumber": "SUP023",
     "skuName": "Organic Cotton Shirt",
     "skuNumber": "SKU1357",
     "barcode": "BC13579024",
@@ -209,7 +200,7 @@
   {
     "receivedDate": "2025-02-21",
     "supplierName": "Work Wear",
-    "supplierNumber": "SUP654",
+    "supplierNumber": "SUP024",
     "skuName": "Safety Vest",
     "skuNumber": "SKU2468",
     "barcode": "BC24680135",
@@ -218,7 +209,7 @@
   {
     "receivedDate": "2025-02-22",
     "supplierName": "Sleep Wear",
-    "supplierNumber": "SUP987",
+    "supplierNumber": "SUP025",
     "skuName": "Pajama Set",
     "skuNumber": "SKU3579",
     "barcode": "BC35791246",
