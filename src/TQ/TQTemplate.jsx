@@ -14,12 +14,12 @@ const TQTemplate = () => {
         <Sidebar
           header="TQ"
           tabs={[
-            { name: 'Inspection Request', href: '/tq/inspection-request' },
+            { name: 'Inspection Records', href: '/tq/inspection-records' },
             { name: 'Inspection', href: '/tq/inspection' },
             { name: 'RFID Scan', href: '/tq/rfid-scan' },
             { name: 'GRN', href: '/tq/grn' },
           ]} />
-        <div className="col-span-4 bg-white shadow-md rounded-xl p-10 mr-7">
+        <div className="col-span-4 bg-white shadow-md rounded-xl p-10 mr-7 mb-20 mt-5">
           <Outlet />
         </div>
       </div>

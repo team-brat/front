@@ -55,98 +55,97 @@ const Inspection = () => {
   };
 
   return (
-    <div className="bg-[#1d2e24] min-h-screen p-8 text-white font-sans">
-      <h2 className="text-3xl font-bold mb-6 tracking-tight">Inspection</h2>
-
-      <div className="grid gap-4 bg-[#152b22] border border-lime-400/20 p-6 rounded-xl">
-        <div>
-          <label className="block text-sm text-lime-300 mb-1">Worker ID</label>
-          <input disabled value={workerId} className="input w-full opacity-60" />
+    <div className="max-w-6xl mx-auto px-6 py-12">
+      <div className="pb-8 mb-10 border-b border-gray-200">
+          <h1 className="text-4xl font-bold tracking-tight text-gray-900 mb-6">Inspection</h1>
         </div>
 
-        <div>
-          <label className="block text-sm text-lime-300 mb-1">SKU Barcode</label>
-          <input
-            className="input w-full"
-            placeholder="Scan barcode or enter serial number"
-            value={barcode}
-            onChange={(e) => setBarcode(e.target.value)}
-          />
-        </div>
+      <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm mb-8">
+        <h3 className="text-xl font-semibold text-gray-800 mb-6">Basic Information</h3>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-base font-medium text-gray-700 mb-1">Worker ID</label>
+            <input 
+              disabled 
+              value={workerId} 
+              className="w-full border border-gray-300 px-4 py-3 rounded-lg text-gray-800 text-base shadow-sm opacity-60" 
+            />
+          </div>
 
-        <div className="flex gap-2 mt-8">
-          <button
-            onClick={handleApproved}
-            className="bg-lime-400 hover:bg-lime-300 text-gray-900 font-bold w-32 py-1.5 rounded-lg"
-          >
-            Approved
-          </button>
-        </div>
-      </div>
+          <div>
+            <label className="block text-base font-medium text-gray-700 mb-1">SKU Barcode</label>
+            <input
+              className="w-full border border-gray-300 px-4 py-3 rounded-lg text-gray-800 text-base shadow-sm"
+              placeholder="Scan barcode or enter serial number"
+              value={barcode}
+              onChange={(e) => setBarcode(e.target.value)}
+            />
+          </div>
 
-      {/* Defect Info */}
-      <div className="mt-6 bg-[#152b22] border border-red-400/20 p-6 rounded-xl">
-        <h3 className="text-red-400 font-semibold text-lg mb-3">Report Defect</h3>
-        <label className="block text-sm mb-1 text-gray-300">Defect Reason</label>
-        <select
-          className="input w-full mb-4"
-          value={defectReason}
-          onChange={(e) => setDefectReason(e.target.value)}
-        >
-          <option value="">-- Select reason --</option>
-          <option value="Damaged">Damaged</option>
-          <option value="Quantity Mismatch">Quantity Mismatch</option>
-          <option value="Barcode Mismatch">Barcode Mismatch</option>
-        </select>
-
-        <label className="block text-sm mb-1 text-gray-300">Proof of Defect (image)</label>
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(e) => setImageFile(e.target.files[0])}
-          className="file:mr-4 file:py-1 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-[#334d3d] file:text-lime-300 hover:file:bg-lime-400/20 text-sm"
-        />
-
-        <div className="flex gap-2 mt-4">
-          <button
-            onClick={handleReportDefect}
-            className="bg-red-600 hover:bg-red-500 text-white font-bold w-32 py-1.5 rounded-lg"
-          >
-            Report Defect
-          </button>
+          <div className="flex justify-end mt-6">
+            <button
+              onClick={handleApproved}
+              className="bg-lime-500 hover:bg-lime-400 text-white font-semibold px-6 py-2 rounded-lg shadow-sm text-base"
+            >
+              Approved
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Result */}
+      <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm mb-10">
+        <h3 className="text-xl font-semibold text-gray-800 mb-6">Report Defect</h3>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-base font-medium text-gray-700 mb-1">Defect Reason</label>
+            <select
+              className="w-full border border-gray-300 px-4 py-3 rounded-lg text-gray-800 text-base shadow-sm"
+              value={defectReason}
+              onChange={(e) => setDefectReason(e.target.value)}
+            >
+              <option value="">-- Select reason --</option>
+              <option value="Damaged">Damaged</option>
+              <option value="Quantity Mismatch">Quantity Mismatch</option>
+              <option value="Barcode Mismatch">Barcode Mismatch</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-base font-medium text-gray-700 mb-1">Proof of Defect (image)</label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setImageFile(e.target.files[0])}
+              className="file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-base file:font-semibold file:bg-lime-100 file:text-lime-800 hover:file:bg-lime-200 text-base"
+            />
+          </div>
+
+          <div className="flex justify-end mt-6">
+            <button
+              onClick={handleReportDefect}
+              className="bg-red-600 hover:bg-red-500 text-white font-semibold px-6 py-2 rounded-lg shadow-sm text-base"
+            >
+              Report Defect
+            </button>
+          </div>
+        </div>
+      </div>
+
       {resultMessage && (
-        <div className="mt-8 bg-[#0f1f17] border border-white/10 rounded-xl p-6 text-center">
+        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
           <p
-            className={`text-lg whitespace-pre-wrap font-bold ${
+            className={`text-xl font-bold text-center ${
               resultType === 'approved'
-                ? 'text-blue-400'
+                ? 'text-lime-600'
                 : resultType === 'declined'
-                ? 'text-red-400'
-                : 'text-yellow-400'
+                ? 'text-red-600'
+                : 'text-yellow-600'
             }`}
           >
             {resultMessage}
           </p>
         </div>
       )}
-
-      <style jsx>{`
-        .input {
-          background-color: #0f1f17;
-          padding: 0.6rem 1rem;
-          border-radius: 0.5rem;
-          border: 1px solid #334d3d;
-          color: white;
-          font-size: 0.875rem;
-        }
-        .input::placeholder {
-          color: #9ca3af;
-        }
-      `}</style>
     </div>
   );
 };

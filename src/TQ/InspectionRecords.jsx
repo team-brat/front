@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { MagnifyingGlassIcon } from '@heroicons/react/20/solid';
 
 const mockData = [
   {
@@ -52,73 +53,74 @@ const InspectionRecords = () => {
     : mockData;
 
   return (
-    <div className="bg-[#1d2e24] min-h-screen p-8 text-white font-sans">
-      <h2 className="text-3xl font-bold mb-6 tracking-tight">Inspection Records</h2>
-
-      <div className="flex flex-col sm:flex-row gap-4 mb-6 items-center">
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search by any field..."
-          className="bg-[#0f1f17] px-4 py-2 rounded-md border border-lime-400/30 text-white text-sm w-full sm:w-80"
-        />
-        <button
-          onClick={() => setQuery('')}
-          className="bg-lime-400 hover:bg-lime-300 text-gray-900 font-semibold px-5 py-2 rounded-xl text-sm"
-        >
-          Clear
-        </button>
-      </div>
-
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm border-separate border-spacing-y-2">
-          <thead className="text-lime-300 text-left">
-            <tr>
-              <th className="px-4 py-2">Date</th>
-              <th className="px-4 py-2">Supplier</th>
-              <th className="px-4 py-2">Supplier #</th>
-              <th className="px-4 py-2">SKU</th>
-              <th className="px-4 py-2">SKU #</th>
-              <th className="px-4 py-2">Barcode</th>
-              <th className="px-4 py-2">Worker ID</th>
-              <th className="px-4 py-2">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((item, idx) => (
-              <tr
-                key={idx}
-                className="bg-[#152b22] border border-white/10 hover:bg-[#294636] cursor-pointer"
-                onClick={() => {
-                  if (item.status === 'Rejected') setSelectedDefect(item);
-                }}
-              >
-                <td className="px-4 py-2">{item.date}</td>
-                <td className="px-4 py-2">{item.supplierName}</td>
-                <td className="px-4 py-2">{item.supplierId}</td>
-                <td className="px-4 py-2">{item.skuName}</td>
-                <td className="px-4 py-2">{item.skuId}</td>
-                <td className="px-4 py-2">{item.barcode}</td>
-                <td className="px-4 py-2">{item.workerId}</td>
-                <td className={`px-4 py-2 font-semibold ${statusColor[item.status]}`}>{item.status}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {selectedDefect && (
-        <div className="mt-8 p-6 bg-[#152b22] border border-red-400 rounded-xl">
-          <h3 className="text-red-400 text-lg font-semibold mb-2">Defect Details</h3>
-          <p className="text-white/80 mb-1">
-            <span className="text-gray-300 font-medium">Defect Code:</span> {selectedDefect.defectCode}
-          </p>
-          <p className="text-white/80">
-            <span className="text-gray-300 font-medium">Defect Reason:</span> {selectedDefect.defectReason}
-          </p>
+    <div className="p-10 space-y-10 w-full">
+      <div>
+        <div className="pb-8 mb-10 border-b border-gray-200">
+          <h1 className="text-4xl font-bold tracking-tight text-gray-900 mb-6">Inspection Records</h1>
         </div>
-      )}
+
+        <div className="w-full mb-8">
+          <div className="relative w-full">
+            <MagnifyingGlassIcon className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 transform -translate-y-1/2 pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Search records..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="pl-12 pr-4 py-3 w-full rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 text-base shadow-sm bg-white transition"
+            />
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-lg border-separate border-spacing-y-2">
+            <thead className="text-gray-700 text-left">
+              <tr>
+                <th className="px-6 py-4">Date</th>
+                <th className="px-6 py-4">Supplier</th>
+                <th className="px-6 py-4">Supplier #</th>
+                <th className="px-6 py-4">SKU</th>
+                <th className="px-6 py-4">SKU #</th>
+                <th className="px-6 py-4">Barcode</th>
+                <th className="px-6 py-4">Worker ID</th>
+                <th className="px-6 py-4">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((item, idx) => (
+                <tr
+                  key={idx}
+                  className="bg-white border border-gray-200 hover:bg-gray-50 cursor-pointer"
+                  onClick={() => {
+                    if (item.status === 'Rejected') setSelectedDefect(item);
+                  }}
+                >
+                  <td className="px-6 py-4">{item.date}</td>
+                  <td className="px-6 py-4">{item.supplierName}</td>
+                  <td className="px-6 py-4">{item.supplierId}</td>
+                  <td className="px-6 py-4">{item.skuName}</td>
+                  <td className="px-6 py-4">{item.skuId}</td>
+                  <td className="px-6 py-4">{item.barcode}</td>
+                  <td className="px-6 py-4">{item.workerId}</td>
+                  <td className={`px-6 py-4 font-semibold ${statusColor[item.status]}`}>{item.status}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {selectedDefect && (
+          <div className="mt-10 p-8 bg-white border border-red-400 rounded-xl shadow-lg">
+            <h3 className="text-red-400 text-xl font-semibold mb-4">Defect Details</h3>
+            <p className="text-gray-700 mb-2 text-lg">
+              <span className="text-gray-900 font-medium">Defect Code:</span> {selectedDefect.defectCode}
+            </p>
+            <p className="text-gray-700 text-lg">
+              <span className="text-gray-900 font-medium">Defect Reason:</span> {selectedDefect.defectReason}
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
