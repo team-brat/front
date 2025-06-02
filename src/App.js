@@ -16,6 +16,7 @@ import Test from './Receiving/Test';
 import TQTemplate from './TQ/TQTemplate';
 import InspectionRecords from './TQ/InspectionRecords';
 import Inspection from './TQ/Inspection';
+import RFIDScan from './TQ/RFIDScan';
 
 import ModalWarning from './components/Modals/Modal-Warning'; // Import the ModalWarning component
 
@@ -61,7 +62,7 @@ function App() {
             <Route path="inspection-request" element={<InspectionRecords />} />
             <Route path="inspection-records" element={<RequireAuth><InspectionRecords/></RequireAuth>} />
             <Route path="inspection" element={<RequireAuth><Inspection/></RequireAuth>} />
-            <Route path="rfid-scan" element={<RequireAuth><div>RFID Scan</div></RequireAuth>} />
+            <Route path="rfid-scan" element={<RequireAuth><div><RFIDScan /></div></RequireAuth>} />
             <Route path="grn" element={<RequireAuth><div>GRN</div></RequireAuth>} />
           </Route>
         </Routes>
