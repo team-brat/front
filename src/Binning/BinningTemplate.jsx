@@ -16,7 +16,7 @@ const BinningTemplate = () => {
           tabs={[
             { name: 'Binning Request', href: '/binning/request' },
             { name: 'Bin Recommender', href: '/binning/recommender' },
-            { name: 'Inventory Status', href: '/inventory/status' },
+            { name: 'Inventory Status', href: '/binning/status' },
             { name: 'Inventory Checking', href: '/inventory/checking' },
           ]} />
         <div className="col-span-4 bg-white shadow-md rounded-xl p-10 mr-7 mb-20 mt-5">

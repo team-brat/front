@@ -174,7 +174,7 @@ const RFIDTaggingPage = () => {
             <div
               className={`flex flex-col text-sm font-medium border-b-4 pb-1 ${
                 currentStep === step.key
-                  ? 'text-green-600 border-green-500'
+                  ? 'text-lime-600 border-lime-500'
                   : steps.findIndex((s) => s.key === currentStep) > stepIdx
                   ? 'text-gray-500 border-gray-300' // Completed step
                   : 'text-gray-400 border-gray-100' // Future step

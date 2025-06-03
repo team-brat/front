@@ -4,42 +4,59 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 const BinningRequest = () => {
-  const [inventoryData, setInventoryData] = useState([]);
+  const [binningData, setBinningData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchInventoryStatus = async () => {
+    const fetchBinningRequests = async () => {
       try {
-        const response = await axios.get('https://z0nql7r236.execute-api.us-east-2.amazonaws.com/dev/inventory/status');
-        setInventoryData(response.data.inventory_status || []);
+        const response = await axios.get('https://z0nql7r236.execute-api.us-east-2.amazonaws.com/dev/binning/requests');
+        console.log('Binning Requests Response:', response.data); // Log the entire response data
+        setBinningData(response.data.binning_requests || []);
       } catch (err) {
         console.error(err);
-        setError('Failed to fetch inventory status');
+        setError('Failed to fetch binning requests');
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchInventoryStatus();
+    fetchBinningRequests();
   }, []);
 
   const handleRowClick = (item) => {
-    // 예: Bin Recommender로 이동하면서 state 전달
-    navigate('/bin-recommender', { state: { skuData: item } });
+    // 예: Binning Recommender로 이동하면서 state 전달
+    navigate('/binning/recommender', { state: { skuData: item } });
   };
+
+  const getDisplayValue = (value) => {
+    // Check for actual value that is not just whitespace or boolean true
+    // Condition A: value exists (not null/undefined) and its string representation (trimmed) is not empty
+    // For numbers like 0, String(0).trim() is "0", so conditionA would be true if value is 0.
+    // However, the original logic `value && String(value).trim()` makes `0` falsy.
+    // Let's adjust to handle 0 as a displayable value if it's not boolean.
+    if (value !== null && value !== undefined && String(value).trim() !== "") {
+        if (typeof value === 'boolean') {
+            return '-'; // Booleans are represented as '-'
+        }
+        return value; // Display actual value (including 0)
+    }
+    // If value is null, undefined, empty string, or whitespace string
+    return '-';
+  };
+
 
   return (
     <div className="p-12 space-y-12 w-full">
       <div>
         <div className="pb-10 mb-12 border-b border-gray-200">
-          <h1 className="text-4xl font-bold tracking-tight text-gray-900 mb-6">Binning Request</h1>
-          <p className="text-gray-500 text-base">Click a row to continue to Bin Recommender</p>
+          <h1 className="text-4xl font-bold tracking-tight text-gray-900 mb-8">Binning Requests</h1>
         </div>
 
         {isLoading && (
-          <div className="text-center text-gray-600">Loading inventory status...</div>
+          <div className="text-center text-gray-600">Loading binning requests...</div>
         )}
         {error && (
           <div className="bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded-lg">
@@ -62,25 +79,25 @@ const BinningRequest = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {inventoryData.map((item, idx) => (
+                {binningData.map((item, idx) => (
                   <tr
-                    key={idx}
+                    key={item.inspection_request_id || idx} // Prefer unique ID if available
                     className="bg-white hover:bg-gray-50 cursor-pointer transition duration-150"
                     onClick={() => handleRowClick(item)}
                   >
-                    <td className="px-6 py-4 text-gray-800">{item.received_date || '-'}</td>
-                    <td className="px-6 py-4 text-gray-800">{item.supplier_name}</td>
-                    <td className="px-6 py-4 text-gray-800">{item.supplier_id}</td>
-                    <td className="px-6 py-4 text-gray-800">{item.sku_name}</td>
-                    <td className="px-6 py-4 text-gray-800">{item.sku_id}</td>
-                    <td className="px-6 py-4 text-gray-800">{item.serial_or_barcode}</td>
-                    <td className="px-6 py-4 text-gray-800">{item.remaining_qty}</td>
+                    <td className="px-6 py-4 text-gray-800">{getDisplayValue(item.received_date)}</td>
+                    <td className="px-6 py-4 text-gray-800">{getDisplayValue(item.supplier_name)}</td>
+                    <td className="px-6 py-4 text-gray-800">{getDisplayValue(item.supplier_id)}</td>
+                    <td className="px-6 py-4 text-gray-800">{getDisplayValue(item.sku_name)}</td>
+                    <td className="px-6 py-4 text-gray-800">{getDisplayValue(item.sku_id)}</td>
+                    <td className="px-6 py-4 text-gray-800">{getDisplayValue(item.serial_or_barcode)}</td>
+                    <td className="px-6 py-4 text-gray-800">{getDisplayValue(item.quantity)}</td>
                   </tr>
                 ))}
-                {inventoryData.length === 0 && (
+                {binningData.length === 0 && (
                   <tr>
                     <td colSpan="7" className="text-center text-gray-500 py-6">
-                      No inventory items to bin.
+                      No binning requests found.
                     </td>
                   </tr>
                 )}

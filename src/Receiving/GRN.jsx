@@ -1,22 +1,9 @@
-import React, { useState, useContext, useEffect, useCallback } from 'react';
+import React, { useState, useContext, useEffect, useMemo } from 'react';
 import { UserAuthContext } from '../App';
 import { MagnifyingGlassIcon } from '@heroicons/react/20/solid';
 import axios from 'axios';
 
 const API_BASE_URL = 'https://z0nql7r236.execute-api.us-east-2.amazonaws.com/dev';
-
-const useDebounce = (value, delay) => {
-  const [debouncedValue, setDebouncedValue] = useState(value);
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedValue(value);
-    }, delay);
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [value, delay]);
-  return debouncedValue;
-};
 
 const formatDate = (timestampInput) => {
   if (timestampInput === null || typeof timestampInput === 'undefined' || timestampInput === '') {
@@ -51,100 +38,88 @@ const formatDate = (timestampInput) => {
 };
 
 const GRN = () => {
-  const { userAuth, workId } = useContext(UserAuthContext); // workId might be supplier_id
+  const { userAuth, workId } = useContext(UserAuthContext);
   const [query, setQuery] = useState('');
-  const [grnRecords, setGrnRecords] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [allGrnRecords, setAllGrnRecords] = useState([]); // Stores all fetched records
+  const [isLoading, setIsLoading] = useState(true); // Start with loading true
   const [error, setError] = useState(null);
 
-  const debouncedQuery = useDebounce(query, 500);
-
-  const fetchData = useCallback(async (currentSearchQuery) => {
-    setIsLoading(true);
-    setError(null); // Reset error state at the beginning of every fetch attempt
-    
-    const params = {};
-
-    // Apply supplier filter if the user is a supplier
-    // This filter applies if no specific supplier_id is part of the currentSearchQuery
-    if (userAuth === 'supplier' && workId) {
-      params.supplier_id = workId;
-    }
-
-    if (currentSearchQuery) {
-      const upperQuery = currentSearchQuery.toUpperCase();
-
-      if (upperQuery.startsWith('GRN-')) {
-        params.grn_id = currentSearchQuery;
-      } else if (upperQuery.startsWith('SKU-')) {
-        params.sku_id = currentSearchQuery;
-      } else if (upperQuery.startsWith('SUP-')) {
-        // If user searches for a specific SUP-id, it overrides the default supplier filter
-        params.supplier_id = currentSearchQuery; 
-      } else if (/^(\d{8}|\d{10})$/.test(currentSearchQuery)) {
-        params.received_date = currentSearchQuery;
-      } else {
-        params.supplier_name = currentSearchQuery;
-      }
-    }
-    // If currentSearchQuery is empty:
-    // - params will be { supplier_id: workId } if user is a supplier with a workId.
-    // - params will be {} if user is not a supplier or has no workId.
-    // This is intended to fetch all relevant records for the user.
-
-    try {
-      const response = await axios.get(`${API_BASE_URL}/grn-search`, { params });
-      setGrnRecords(response.data?.grn_results || []);
-    } catch (err) {
-      // Only set an error message if the fetch was initiated by a non-empty search query.
-      // If currentSearchQuery is empty (meaning an attempt to fetch all/default records) and it fails,
-      // the error state remains null (as it was cleared at the start of fetchData).
-      if (currentSearchQuery) {
-        setError(err.response?.data?.message || err.message || 'Failed to fetch GRN records.');
-      }
-      // In any error case (whether currentSearchQuery was empty or not), clear the records.
-      setGrnRecords([]); 
-    } finally {
-      setIsLoading(false);
-    }
-  }, [userAuth, workId]); // currentSearchQuery is passed as an argument, not a direct dependency of useCallback
-
   useEffect(() => {
-    // Fetch data when debouncedQuery changes.
-    // This includes the initial fetch when the component mounts (debouncedQuery is initially ''),
-    // and subsequent fetches when the user types and pauses, or clears the search input.
-    fetchData(debouncedQuery);
-  }, [debouncedQuery, fetchData]);
+    const fetchData = async () => {
+      setIsLoading(true);
+      setError(null);
+      const params = {};
 
-  const displayableGrnItems = grnRecords.flatMap((grn) =>
-    grn.skus.flatMap((sku) => {
-      if (sku.items && sku.items.length > 0) {
-        return sku.items.map((item) => ({
+      // If user is a supplier, fetch only their records
+      if (userAuth === 'supplier' && workId) {
+        params.supplier_id = workId;
+      }
+      // For other users, or if workId is not available, params remains empty to fetch all (or as per API default)
+
+      try {
+        // The API endpoint /grn-search should return all relevant GRNs when no specific search criteria are provided,
+        // or filtered by supplier_id if provided.
+        const response = await axios.get(`${API_BASE_URL}/grn-search`, { params });
+        setAllGrnRecords(response.data?.grn_results || []);
+      } catch (err) {
+        setError(err.response?.data?.message || err.message || 'Failed to fetch GRN records.');
+        setAllGrnRecords([]); // Clear records on error
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [userAuth, workId]); // Re-fetch if user context (affecting supplier_id) changes
+
+  // Memoize the flattened list of all displayable items from fetched records
+  const allDisplayableGrnItems = useMemo(() => {
+    return allGrnRecords.flatMap((grn) =>
+      grn.skus.flatMap((sku) => {
+        if (sku.items && sku.items.length > 0) {
+          return sku.items.map((item) => ({
+            grn_id: grn.grn_id,
+            received_date: formatDate(grn.received_date),
+            supplier_name: grn.supplier_name,
+            supplier_id: grn.supplier_id, // Include for searching
+            sku_name: sku.sku_name,
+            sku_id: sku.sku_id,
+            serial_barcode: item.serial_or_barcode,
+          }));
+        }
+        // If a SKU has no items, create a row with N/A for barcode
+        return [{
           grn_id: grn.grn_id,
           received_date: formatDate(grn.received_date),
           supplier_name: grn.supplier_name,
+          supplier_id: grn.supplier_id, // Include for searching
           sku_name: sku.sku_name,
           sku_id: sku.sku_id,
-          serial_barcode: item.serial_or_barcode,
-        }));
-      }
-      // If a SKU has no items, create a row with N/A for barcode
-      return [{
-        grn_id: grn.grn_id,
-        received_date: formatDate(grn.received_date),
-        supplier_name: grn.supplier_name,
-        sku_name: sku.sku_name,
-        sku_id: sku.sku_id,
-        serial_barcode: 'N/A',
-      }];
-    })
-  );
+          serial_barcode: 'N/A',
+        }];
+      })
+    );
+  }, [allGrnRecords]);
+
+  // Memoize the filtered list based on the current query
+  const filteredDisplayableGrnItems = useMemo(() => {
+    if (!query) {
+      return allDisplayableGrnItems; // No query, return all items
+    }
+    const lowerCaseQuery = query.toLowerCase();
+    return allDisplayableGrnItems.filter(item => 
+      // Check if any value in the item matches the query (case-insensitive)
+      Object.values(item).some(value =>
+        String(value).toLowerCase().includes(lowerCaseQuery)
+      )
+    );
+  }, [allDisplayableGrnItems, query]);
 
   return (
     <div className="p-12 space-y-12 w-full">
       <div>
         <div className="pb-10 mb-12 border-b border-gray-200">
-          <h1 className="text-4xl font-bold tracking-tight text-gray-900 mb-8">GRN Search</h1>
+          <h1 className="text-4xl font-bold tracking-tight text-gray-900 mb-8">GRN</h1>
         </div>
 
         <div className="w-full mb-8">
@@ -152,7 +127,7 @@ const GRN = () => {
             <MagnifyingGlassIcon className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 transform -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
-              placeholder="Search by ID (GRN, SKU, SUP), Supplier Name, Date (YYYYMMDD or Timestamp)..."
+              placeholder="Search records..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               className="pl-12 pr-4 py-3 w-full rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 text-base shadow-sm bg-white transition"
@@ -163,13 +138,13 @@ const GRN = () => {
         {isLoading && (
           <div className="text-center py-4 text-gray-700">Loading records...</div>
         )}
-        {error && ( // This will only be true if error state is set (i.e., for failed non-empty queries)
+        {error && ( // Display error if initial fetch failed
           <div className="my-4 p-4 bg-red-50 text-red-700 border border-red-300 rounded-lg">
             Error: {error}
           </div>
         )}
 
-        {!isLoading && !error && ( // Render table if not loading AND no error is set
+        {!isLoading && !error && ( // Render table if not loading AND no initial fetch error
           <div className="overflow-x-auto rounded-xl border border-gray-200 shadow-lg">
             <table className="min-w-full text-base text-left">
               <thead className="bg-gray-50">
@@ -183,9 +158,9 @@ const GRN = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {displayableGrnItems.map((item, idx) => (
+                {filteredDisplayableGrnItems.map((item, idx) => (
                   <tr
-                    key={`${item.grn_id}-${item.sku_id}-${item.serial_barcode}-${idx}`}
+                    key={`${item.grn_id}-${item.sku_id}-${item.serial_barcode}-${idx}`} // Consider a more robust key if possible
                     className="bg-white hover:bg-gray-50 transition duration-150"
                   >
                     <td className="px-8 py-4 text-gray-900 whitespace-nowrap">{item.grn_id}</td>
@@ -196,7 +171,7 @@ const GRN = () => {
                     <td className="px-8 py-4 text-gray-900 whitespace-nowrap">{item.serial_barcode}</td>
                   </tr>
                 ))}
-                {displayableGrnItems.length === 0 && ( // Show "No matching records" if list is empty (and not loading, no error message)
+                {filteredDisplayableGrnItems.length === 0 && (
                   <tr>
                     <td colSpan="6" className="text-center text-gray-500 py-8">
                       No matching records found.
