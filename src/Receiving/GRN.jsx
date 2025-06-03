@@ -3,54 +3,146 @@ import { UserAuthContext } from '../App';
 import { MagnifyingGlassIcon } from '@heroicons/react/20/solid';
 import axios from 'axios';
 
-const API_BASE_URL = 'https://mdbi6j3x50.execute-api.us-east-2.amazonaws.com/dev';
+const API_BASE_URL = 'https://z0nql7r236.execute-api.us-east-2.amazonaws.com/dev';
+
+const useDebounce = (value, delay) => {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+  return debouncedValue;
+};
+
+const formatDate = (timestampInput) => {
+  if (timestampInput === null || typeof timestampInput === 'undefined' || timestampInput === '') {
+    return '-';
+  }
+
+  let date;
+  // Check if it's a string in YYYYMMDD format
+  if (typeof timestampInput === 'string' && /^\d{8}$/.test(timestampInput)) {
+    const year = parseInt(timestampInput.substring(0, 4), 10);
+    const month = parseInt(timestampInput.substring(4, 6), 10) - 1; // JS months are 0-indexed
+    const day = parseInt(timestampInput.substring(6, 8), 10);
+    date = new Date(Date.UTC(year, month, day)); // Use UTC to avoid timezone issues with YYYYMMDD
+  } else {
+    // Assume it's a timestamp in seconds (can be number or string)
+    const numericTimestamp = Number(timestampInput);
+    if (!isNaN(numericTimestamp)) {
+      // Assuming timestamp is in seconds, convert to milliseconds for Date constructor
+      date = new Date(numericTimestamp * 1000);
+    }
+  }
+
+  if (!date || isNaN(date.getTime())) {
+    return '-'; // Invalid date or input format
+  }
+  
+  // Format to YYYY-MM-DD in UTC to match en-CA like behavior consistently
+  const year = date.getUTCFullYear();
+  const month = (date.getUTCMonth() + 1).toString().padStart(2, '0');
+  const day = date.getUTCDate().toString().padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
 const GRN = () => {
-  const { userAuth } = useContext(UserAuthContext);
+  const { userAuth, workId } = useContext(UserAuthContext); // workId might be supplier_id
   const [query, setQuery] = useState('');
   const [grnRecords, setGrnRecords] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const fetchData = useCallback(async () => {
+  const debouncedQuery = useDebounce(query, 500);
+
+  const fetchData = useCallback(async (currentSearchQuery) => {
     setIsLoading(true);
     setError(null);
+    
+    const params = {};
+
+    // Apply supplier filter if the user is a supplier
+    if (userAuth === 'supplier' && workId) {
+      params.supplier_id = workId;
+    }
+
+    if (currentSearchQuery) {
+      const upperQuery = currentSearchQuery.toUpperCase();
+
+      if (upperQuery.startsWith('GRN-')) {
+        params.grn_id = currentSearchQuery;
+      } else if (upperQuery.startsWith('SKU-')) {
+        params.sku_id = currentSearchQuery;
+      } else if (upperQuery.startsWith('SUP-')) {
+        // If user is 'supplier', their workId might already be set as supplier_id.
+        // An explicit search for a SUP-id will use the searched ID.
+        // Backend should handle authorization (e.g., a supplier can only see their own data).
+        params.supplier_id = currentSearchQuery; 
+      } else if (/^(\d{8}|\d{10})$/.test(currentSearchQuery)) {
+        // Matches YYYYMMDD (8 digits like 20250429) 
+        // or a 10-digit timestamp (seconds like 1748563200)
+        // The backend is expected to handle these formats for 'received_date'.
+        params.received_date = currentSearchQuery;
+      } else {
+        // General text query. This could be supplier_name, sku_name, or serial_or_barcode.
+        // With a single search input, it's ambiguous.
+        // The API documentation shows separate parameters for these (e.g., supplier_name, sku_name),
+        // and multi-condition search (supplier_name=X&sku_name=Y) implies AND logic if multiple distinct params are sent.
+        // The backend does not appear to have a generic 'q=' or 'search_term=' parameter 
+        // for a general text search across multiple fields with OR logic.
+        // The input placeholder suggests "Supplier Name" as a primary general search target.
+        // We will retain this default for non-prefixed, non-date text.
+        params.supplier_name = currentSearchQuery;
+        // To explicitly search by sku_name or serial_or_barcode using the current UI,
+        // it would require UI changes (e.g., dropdown for search field) or a more complex query parsing strategy.
+      }
+    }
+    // If currentSearchQuery is empty:
+    // - and user is a supplier, it will fetch GRNs filtered by their supplier_id (if `params.supplier_id` was set).
+    // - and user is not a supplier (or no workId), it might fetch all GRNs (behavior depends on backend for empty params).
+
     try {
-      const response = await axios.get(`${API_BASE_URL}/grn-records`);
-      setGrnRecords(Array.isArray(response.data) ? response.data : []);
+      const response = await axios.get(`${API_BASE_URL}/grn-search`, { params });
+      setGrnRecords(response.data?.grn_results || []);
     } catch (err) {
       setError(err.response?.data?.message || err.message || 'Failed to fetch GRN records.');
       setGrnRecords([]);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [userAuth, workId]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    fetchData(debouncedQuery);
+  }, [debouncedQuery, fetchData]);
 
-  const filteredData = grnRecords.filter((row) => {
-    const isSupplierAuth = userAuth === 'supplier' ? row.supplier_id === 'SUP123' : true;
-    if (!isSupplierAuth) {
-      return false;
-    }
-
-    if (query.trim() === '') {
-      return true;
-    }
-
-    const lowerQuery = query.toLowerCase();
-    return (
-      (row.grn_id && String(row.grn_id).toLowerCase().includes(lowerQuery)) ||
-      (row.received_date && String(row.received_date).toLowerCase().includes(lowerQuery)) ||
-      (row.supplier_name && row.supplier_name.toLowerCase().includes(lowerQuery)) ||
-      (row.supplier_id && String(row.supplier_id).toLowerCase().includes(lowerQuery)) ||
-      (row.sku_name && row.sku_name.toLowerCase().includes(lowerQuery)) ||
-      (row.sku_id && String(row.sku_id).toLowerCase().includes(lowerQuery)) ||
-      (row.serial_barcode && String(row.serial_barcode).toLowerCase().includes(lowerQuery))
-    );
-  });
+  const displayableGrnItems = grnRecords.flatMap((grn) =>
+    grn.skus.flatMap((sku) => {
+      if (sku.items && sku.items.length > 0) {
+        return sku.items.map((item) => ({
+          grn_id: grn.grn_id,
+          received_date: formatDate(grn.received_date),
+          supplier_name: grn.supplier_name,
+          sku_name: sku.sku_name,
+          sku_id: sku.sku_id,
+          serial_barcode: item.serial_or_barcode,
+        }));
+      }
+      // If a SKU has no items, create a row with N/A for barcode
+      return [{
+        grn_id: grn.grn_id,
+        received_date: formatDate(grn.received_date),
+        supplier_name: grn.supplier_name,
+        sku_name: sku.sku_name,
+        sku_id: sku.sku_id,
+        serial_barcode: 'N/A',
+      }];
+    })
+  );
 
   return (
     <div className="p-12 space-y-12 w-full">
@@ -64,7 +156,7 @@ const GRN = () => {
             <MagnifyingGlassIcon className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 transform -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
-              placeholder="Search by GRN, barcode, supplier..."
+              placeholder="Search by ID (GRN, SKU, SUP), Supplier Name, Date (YYYYMMDD or Timestamp)..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               className="pl-12 pr-4 py-3 w-full rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 text-base shadow-sm bg-white transition"
@@ -95,20 +187,20 @@ const GRN = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {filteredData.map((row, idx) => (
+                {displayableGrnItems.map((item, idx) => (
                   <tr
-                    key={`${row.grn_id}-${row.sku_id}-${idx}`} // Using a composite key, assuming grn_id + sku_id might not be unique if API returns multiple entries for same combo. idx makes it unique for rendering.
+                    key={`${item.grn_id}-${item.sku_id}-${item.serial_barcode}-${idx}`}
                     className="bg-white hover:bg-gray-50 transition duration-150"
                   >
-                    <td className="px-8 py-4 text-gray-900 whitespace-nowrap">{row.grn_id}</td>
-                    <td className="px-8 py-4 text-gray-900 whitespace-nowrap">{row.received_date}</td>
-                    <td className="px-8 py-4 text-gray-900 whitespace-nowrap">{row.supplier_name}</td>
-                    <td className="px-8 py-4 text-gray-900 whitespace-nowrap">{row.sku_name}</td>
-                    <td className="px-8 py-4 text-gray-900 whitespace-nowrap">{row.sku_id}</td>
-                    <td className="px-8 py-4 text-gray-900 whitespace-nowrap">{row.serial_barcode}</td>
+                    <td className="px-8 py-4 text-gray-900 whitespace-nowrap">{item.grn_id}</td>
+                    <td className="px-8 py-4 text-gray-900 whitespace-nowrap">{item.received_date}</td>
+                    <td className="px-8 py-4 text-gray-900 whitespace-nowrap">{item.supplier_name}</td>
+                    <td className="px-8 py-4 text-gray-900 whitespace-nowrap">{item.sku_name}</td>
+                    <td className="px-8 py-4 text-gray-900 whitespace-nowrap">{item.sku_id}</td>
+                    <td className="px-8 py-4 text-gray-900 whitespace-nowrap">{item.serial_barcode}</td>
                   </tr>
                 ))}
-                {filteredData.length === 0 && (
+                {displayableGrnItems.length === 0 && (
                   <tr>
                     <td colSpan="6" className="text-center text-gray-500 py-8">
                       No matching records found.

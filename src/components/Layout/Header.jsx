@@ -16,14 +16,14 @@ const Header = () => {
         { name: 'Dashboard', href: '/dashboard' },
         { name: 'Receiving', href: '/receiving/create' },
         { name: 'TQ', href: '/tq/inspection-records' },
-        { name: 'Binning', href: '/binning' },
+        { name: 'Binning', href: '/binning/request' },
         { name: 'Dispatch', href: '/dispatch' },
         { name: 'SKU', href: '/sku' },
       ]
     : [
         { name: 'Receiving', href: '/receiving/create' },
         { name: 'TQ', href: '/tq/inspection-records' },
-        { name: 'Binning', href: '/binning' },
+        { name: 'Binning', href: '/binning/request' },
         { name: 'Dispatch', href: '/dispatch' },
         { name: 'SKU', href: '/sku' },
       ];

@@ -19,6 +19,12 @@ import Inspection from './TQ/Inspection';
 import RFIDScan from './TQ/RFIDScan';
 import GRN from './Receiving/GRN';
 
+import BinningTemplate from './Binning/BinningTemplate';
+import BinningRequest from './Binning/BinningRequest';
+import BinRecommender from './Binning/BinRecommender';
+import InventoryStatus from './Binning/InventoryStatus';
+import InventoryChecking from './Binning/InventoryChecking';
+
 import ModalWarning from './components/Modals/Modal-Warning'; // Import the ModalWarning component
 
 // Create a context for user authentication
@@ -58,6 +64,12 @@ function App() {
             <Route path="documents" element={<RequireAuth><DocVerification /></RequireAuth>} />
             <Route path="doc-test" element={<RequireAuth><Test /></RequireAuth>} />
             <Route path="status" element={<RequireAuth><ReceivingStatus /></RequireAuth>} />
+          </Route>
+          <Route path="/binning" element={<RequireAuth><BinningTemplate /></RequireAuth>}>
+            <Route path="request" element={<RequireAuth><BinningRequest /></RequireAuth>} />
+            <Route path="recommender" element={<RequireAuth><BinRecommender /></RequireAuth>} />
+            <Route path="status" element={<RequireAuth><InventoryStatus /></RequireAuth>} />
+            <Route path="checking" element={<RequireAuth><InventoryChecking /></RequireAuth>} />
           </Route>
           <Route path="/tq" element={<RequireAuth><TQTemplate /></RequireAuth>}>
             <Route path="inspection-request" element={<InspectionRecords />} />
