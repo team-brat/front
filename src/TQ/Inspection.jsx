@@ -114,7 +114,7 @@ const Inspection = () => {
         worker_id: workerId,
         barcode: barcode,
         defect_reason: defectReason,
-        defect_image: base64Image,
+        evidence_b64: base64Image,
       };
 
       const res = await axios.post(`${BASE_URL}/inspection/${barcode}/declined`, body, {
