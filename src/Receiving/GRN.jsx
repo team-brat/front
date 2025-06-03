@@ -61,11 +61,12 @@ const GRN = () => {
 
   const fetchData = useCallback(async (currentSearchQuery) => {
     setIsLoading(true);
-    setError(null);
+    setError(null); // Reset error state at the beginning of every fetch attempt
     
     const params = {};
 
     // Apply supplier filter if the user is a supplier
+    // This filter applies if no specific supplier_id is part of the currentSearchQuery
     if (userAuth === 'supplier' && workId) {
       params.supplier_id = workId;
     }
@@ -78,45 +79,40 @@ const GRN = () => {
       } else if (upperQuery.startsWith('SKU-')) {
         params.sku_id = currentSearchQuery;
       } else if (upperQuery.startsWith('SUP-')) {
-        // If user is 'supplier', their workId might already be set as supplier_id.
-        // An explicit search for a SUP-id will use the searched ID.
-        // Backend should handle authorization (e.g., a supplier can only see their own data).
+        // If user searches for a specific SUP-id, it overrides the default supplier filter
         params.supplier_id = currentSearchQuery; 
       } else if (/^(\d{8}|\d{10})$/.test(currentSearchQuery)) {
-        // Matches YYYYMMDD (8 digits like 20250429) 
-        // or a 10-digit timestamp (seconds like 1748563200)
-        // The backend is expected to handle these formats for 'received_date'.
         params.received_date = currentSearchQuery;
       } else {
-        // General text query. This could be supplier_name, sku_name, or serial_or_barcode.
-        // With a single search input, it's ambiguous.
-        // The API documentation shows separate parameters for these (e.g., supplier_name, sku_name),
-        // and multi-condition search (supplier_name=X&sku_name=Y) implies AND logic if multiple distinct params are sent.
-        // The backend does not appear to have a generic 'q=' or 'search_term=' parameter 
-        // for a general text search across multiple fields with OR logic.
-        // The input placeholder suggests "Supplier Name" as a primary general search target.
-        // We will retain this default for non-prefixed, non-date text.
         params.supplier_name = currentSearchQuery;
-        // To explicitly search by sku_name or serial_or_barcode using the current UI,
-        // it would require UI changes (e.g., dropdown for search field) or a more complex query parsing strategy.
       }
     }
     // If currentSearchQuery is empty:
-    // - and user is a supplier, it will fetch GRNs filtered by their supplier_id (if `params.supplier_id` was set).
-    // - and user is not a supplier (or no workId), it might fetch all GRNs (behavior depends on backend for empty params).
+    // - params will be { supplier_id: workId } if user is a supplier with a workId.
+    // - params will be {} if user is not a supplier or has no workId.
+    // This is intended to fetch all relevant records for the user.
 
     try {
       const response = await axios.get(`${API_BASE_URL}/grn-search`, { params });
       setGrnRecords(response.data?.grn_results || []);
     } catch (err) {
-      setError(err.response?.data?.message || err.message || 'Failed to fetch GRN records.');
-      setGrnRecords([]);
+      // Only set an error message if the fetch was initiated by a non-empty search query.
+      // If currentSearchQuery is empty (meaning an attempt to fetch all/default records) and it fails,
+      // the error state remains null (as it was cleared at the start of fetchData).
+      if (currentSearchQuery) {
+        setError(err.response?.data?.message || err.message || 'Failed to fetch GRN records.');
+      }
+      // In any error case (whether currentSearchQuery was empty or not), clear the records.
+      setGrnRecords([]); 
     } finally {
       setIsLoading(false);
     }
-  }, [userAuth, workId]);
+  }, [userAuth, workId]); // currentSearchQuery is passed as an argument, not a direct dependency of useCallback
 
   useEffect(() => {
+    // Fetch data when debouncedQuery changes.
+    // This includes the initial fetch when the component mounts (debouncedQuery is initially ''),
+    // and subsequent fetches when the user types and pauses, or clears the search input.
     fetchData(debouncedQuery);
   }, [debouncedQuery, fetchData]);
 
@@ -148,7 +144,7 @@ const GRN = () => {
     <div className="p-12 space-y-12 w-full">
       <div>
         <div className="pb-10 mb-12 border-b border-gray-200">
-          <h1 className="text-4xl font-bold tracking-tight text-gray-900 mb-8">GRN History</h1>
+          <h1 className="text-4xl font-bold tracking-tight text-gray-900 mb-8">GRN Search</h1>
         </div>
 
         <div className="w-full mb-8">
@@ -167,13 +163,13 @@ const GRN = () => {
         {isLoading && (
           <div className="text-center py-4 text-gray-700">Loading records...</div>
         )}
-        {error && (
+        {error && ( // This will only be true if error state is set (i.e., for failed non-empty queries)
           <div className="my-4 p-4 bg-red-50 text-red-700 border border-red-300 rounded-lg">
             Error: {error}
           </div>
         )}
 
-        {!isLoading && !error && (
+        {!isLoading && !error && ( // Render table if not loading AND no error is set
           <div className="overflow-x-auto rounded-xl border border-gray-200 shadow-lg">
             <table className="min-w-full text-base text-left">
               <thead className="bg-gray-50">
@@ -200,7 +196,7 @@ const GRN = () => {
                     <td className="px-8 py-4 text-gray-900 whitespace-nowrap">{item.serial_barcode}</td>
                   </tr>
                 ))}
-                {displayableGrnItems.length === 0 && (
+                {displayableGrnItems.length === 0 && ( // Show "No matching records" if list is empty (and not loading, no error message)
                   <tr>
                     <td colSpan="6" className="text-center text-gray-500 py-8">
                       No matching records found.
