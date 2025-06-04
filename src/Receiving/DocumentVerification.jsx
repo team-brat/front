@@ -138,14 +138,38 @@ const DocVerification = () => {
   };
 
   const applyCrop = () => {
-    if (!completedCrop || !previewCanvasRef.current) return;
+    if (!completedCrop || !previewCanvasRef.current || !imgRef.current) return;
+     // To make crop work correctly, you might need to draw the cropped image onto previewCanvasRef here.
+     // Example:
+     // const image = imgRef.current;
+     // const canvas = previewCanvasRef.current;
+     // const crop = completedCrop;
+     // const scaleX = image.naturalWidth / image.width;
+     // const scaleY = image.naturalHeight / image.height;
+     // canvas.width = crop.width;
+     // canvas.height = crop.height;
+     // const ctx = canvas.getContext('2d');
+     // ctx.drawImage(
+     //   image,
+     //   crop.x * scaleX,
+     //   crop.y * scaleY,
+     //   crop.width * scaleX,
+     //   crop.height * scaleY,
+     //   0,
+     //   0,
+     //   crop.width,
+     //   crop.height
+     // );
     previewCanvasRef.current.toBlob(blob => {
-      const file = new File([blob], `${currentDocType}.jpg`, { type: 'image/jpeg' });
-      setFiles(prev => ({ ...prev, [currentDocType]: file }));
-      setDocsUploaded(prev => ({ ...prev, [currentDocType]: true }));
-      setOcrProgress(prev => ({ ...prev, [currentDocType]: 'Captured' }));
+      if (blob) {
+        const file = new File([blob], `${currentDocType}.jpg`, { type: 'image/jpeg' });
+        setFiles(prev => ({ ...prev, [currentDocType]: file }));
+        setDocsUploaded(prev => ({ ...prev, [currentDocType]: true }));
+        setOcrProgress(prev => ({ ...prev, [currentDocType]: 'Captured' }));
+      }
       setIsCropMode(false);
       setFullImage(null);
+      setCompletedCrop(null); // Reset crop
     }, 'image/jpeg', 0.95);
   };
 
@@ -156,6 +180,34 @@ const DocVerification = () => {
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-12">
+      {isCameraOpen && (
+        <div className="fixed inset-0 bg-black z-50 flex flex-col items-center justify-center">
+          <video ref={videoRef} autoPlay playsInline className="w-full max-w-lg" />
+          <canvas ref={canvasRef} className="hidden" />
+          <div className="flex mt-4 space-x-4">
+            <button onClick={closeCamera} className="bg-gray-700 px-4 py-2 rounded text-white">Cancel</button>
+            <button onClick={captureImage} className="bg-lime-500 px-4 py-2 rounded text-white">Capture</button>
+          </div>
+        </div>
+      )}
+
+      {isCropMode && fullImage && (
+        <div className="fixed inset-0 bg-black z-50 p-4 flex flex-col items-center justify-center">
+          <ReactCrop
+            crop={crop}
+            onChange={c => setCrop(c)}
+            onComplete={c => setCompletedCrop(c)}
+          >
+            <img ref={imgRef} src={fullImage} alt="Captured for cropping" style={{ maxHeight: '80vh', maxWidth: '80vw' }} />
+          </ReactCrop>
+          <canvas ref={previewCanvasRef} className="hidden" /> {/* This canvas is used by applyCrop */}
+          <div className="flex mt-4 space-x-4">
+            <button onClick={() => { setIsCropMode(false); setFullImage(null); setCompletedCrop(null);}} className="bg-gray-700 px-4 py-2 rounded text-white">Cancel</button>
+            <button onClick={applyCrop} className="bg-lime-500 px-4 py-2 rounded text-white">Crop</button>
+          </div>
+        </div>
+      )}
+
       <h2 className="text-3xl font-bold text-gray-800 mb-10">Document Verification</h2>
 
       <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm mb-10">
@@ -182,7 +234,7 @@ const DocVerification = () => {
               </div>
               <div className="flex gap-4">
                 <label className="w-full cursor-pointer text-center bg-lime-100 hover:bg-lime-200 text-lime-800 font-semibold py-2 rounded-lg border border-lime-300">
-                  <input type="file" className="sr-only" onChange={(e) => handleFileChange(e, type)} />
+                  <input type="file" className="sr-only" onChange={(e) => handleFileChange(e, type)} accept="image/*,.pdf"/>
                   Upload File
                 </label>
                 <button
@@ -220,7 +272,6 @@ const DocVerification = () => {
           })}
         </div>
       </div>
-
       <div className="grid md:grid-cols-3 gap-6">
         {['invoice', 'bill', 'airway'].map((type) => {
           const doc = perDocumentScores[type];
