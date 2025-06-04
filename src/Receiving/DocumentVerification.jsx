@@ -1,13 +1,13 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import Tesseract from 'tesseract.js';
-import { ExclamationTriangleIcon, CameraIcon } from '@heroicons/react/20/solid';
+import { ExclamationTriangleIcon, CameraIcon, XMarkIcon } from '@heroicons/react/20/solid';
 import ReactCrop from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 
 const DocVerification = () => {
   const [docsUploaded, setDocsUploaded] = useState({ invoice: false, bill: false, airway: false });
   const [barcode, setBarcode] = useState('');
+  const [orderId, setOrderId] = useState(''); // New state to store order_id
   const [accuracy, setAccuracy] = useState(null);
   const [files, setFiles] = useState({ invoice: null, bill: null, airway: null });
   const [barcodeError, setBarcodeError] = useState(false);
@@ -31,11 +31,23 @@ const DocVerification = () => {
   const previewCanvasRef = useRef(null); // Canvas for drawing the final cropped image
 
   const [currentStep, setCurrentStep] = useState('barcode');
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  // const [showSuccessModal, setShowSuccessModal] = useState(false); // Replaced by modalState
+  const [modalState, setModalState] = useState({ isOpen: false, type: '', title: '', message: '' });
+
+
+  const closeModal = () => {
+    setModalState({ isOpen: false, type: '', title: '', message: '' });
+  };
+
+  const resetInitialStateAndCloseModal = () => {
+    resetInitialState();
+    closeModal();
+  };
 
   const resetInitialState = () => {
     setDocsUploaded({ invoice: false, bill: false, airway: false });
     setBarcode('');
+    setOrderId(''); // Reset orderId
     setAccuracy(null);
     setFiles({ invoice: null, bill: null, airway: null });
     setBarcodeError(false);
@@ -47,7 +59,7 @@ const DocVerification = () => {
     setRetrievalMessage('');
     
     setCurrentStep('barcode');
-    setShowSuccessModal(false);
+    // setShowSuccessModal(false); // Handled by closeModal now
 
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
@@ -100,11 +112,33 @@ const DocVerification = () => {
     setPerDocumentScores({});
     setAccuracy(null);
     setMismatchAlert('');
+    setOrderId(''); // Reset orderId before new retrieval
 
     try {
       const res = await fetch(`https://z0nql7r236.execute-api.us-east-2.amazonaws.com/dev/receiving-orders/by-barcode/${barcode}`);
-      if (!res.ok) throw new Error('Failed to retrieve documents');
+      if (!res.ok) {
+        const errorData = await res.text();
+        throw new Error(`Failed to retrieve documents: ${res.status} ${errorData}`);
+      }
       const data = await res.json();
+
+      // Extract order_id as per instruction: "order" 키 값의 value에서 "order_id"
+      if (data.order && data.order.order_id) {
+        setOrderId(data.order.order_id);
+      } else {
+        // Fallback or if structure is different, try direct data.order_id (as was in original code)
+        // This part might need adjustment based on actual API response structure.
+        // For now, strictly following the "data.order.order_id" instruction.
+        console.error("order_id not found in data.order.order_id. Full response:", data);
+        // If data.order_id was the previous correct path:
+        if (data.order_id) {
+            setOrderId(data.order_id);
+            console.warn("Used fallback data.order_id as data.order.order_id was not found.");
+        } else {
+            throw new Error('Order ID could not be extracted from the response.');
+        }
+      }
+      
       const urls = data.documents.map(doc => ({ type: doc.document_type, url: doc.download_url }));
 
       const ocrResults = {};
@@ -115,11 +149,11 @@ const DocVerification = () => {
       }
 
       setDocumentOcrResults(ocrResults);
-      setRetrievalMessage(''); // Do not display 'Reference documents retrieved.'
+      setRetrievalMessage(''); 
       setCurrentStep('upload');
     } catch (err) {
       setApiError(err.message);
-      setRetrievalMessage(''); // Clear loading message
+      setRetrievalMessage(''); 
     }
   };
 
@@ -318,6 +352,57 @@ const DocVerification = () => {
 
   const canEnableConfirmStep2Button = Object.values(docsUploaded).some(isUploaded => isUploaded);
 
+  const finalizeVerification = async () => {
+    setApiError(''); // Clear previous errors before this specific action
+
+    if (!orderId) {
+      setModalState({ 
+        isOpen: true, 
+        type: 'error', 
+        title: 'Order ID Missing', 
+        message: 'Order ID is not available. Please ensure documents were retrieved successfully in Step 1.' 
+      });
+      return;
+    }
+
+    try {
+      const response = await fetch(`https://z0nql7r236.execute-api.us-east-2.amazonaws.com/dev/receiving-orders/status/${orderId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          status: 'APPROVED',
+          comments: '테스트를 위한 자동 승인입니다.', // Automatic approval for testing.
+          user_id: 'approver-user', // Placeholder user_id
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`API Error: ${response.status} - ${errorText}`);
+      }
+
+      const data = await response.json();
+      console.log('Order status updated:', data);
+      setModalState({ 
+        isOpen: true, 
+        type: 'success', 
+        title: 'Verification Finalized', 
+        message: 'The order status has been successfully updated to APPROVED.' 
+      });
+      // setShowSuccessModal(true); // Replaced by modalState
+    } catch (error) {
+      console.error('Error finalizing verification:', error);
+      setModalState({ 
+        isOpen: true, 
+        type: 'error', 
+        title: 'Finalization Failed', 
+        message: `Failed to update order status. ${error.message}` 
+      });
+    }
+  };
+
   return (
     <div className="max-w-6xl mx-auto px-6 py-12">
       {isCameraOpen && (
@@ -366,14 +451,27 @@ const DocVerification = () => {
         </div>
       )}
 
-      {showSuccessModal && (
+      {modalState.isOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-75 z-[100] flex items-center justify-center p-4">
-            <div className="bg-white p-8 rounded-xl shadow-2xl text-center w-full max-w-md">
-                <h3 className="text-2xl font-bold text-gray-800 mb-4">Confirmed.</h3>
-                <p className="text-gray-600 mb-8">The document verification process is complete.</p>
+            <div className="bg-white p-6 rounded-xl shadow-2xl w-full max-w-md relative">
+                <button 
+                    onClick={closeModal} 
+                    className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
+                    aria-label="Close modal"
+                >
+                    <XMarkIcon className="h-6 w-6" />
+                </button>
+                <h3 className={`text-2xl font-bold mb-4 ${modalState.type === 'success' ? 'text-lime-600' : 'text-red-600'}`}>
+                    {modalState.title}
+                </h3>
+                <p className="text-gray-700 mb-6 whitespace-pre-wrap">{modalState.message}</p>
                 <button
-                    onClick={resetInitialState}
-                    className="w-full bg-lime-500 hover:bg-lime-600 text-white font-semibold px-6 py-3 rounded-lg shadow-md transition duration-150 ease-in-out"
+                    onClick={modalState.type === 'success' ? resetInitialStateAndCloseModal : closeModal}
+                    className={`w-full font-semibold px-6 py-3 rounded-lg shadow-md transition duration-150 ease-in-out ${
+                        modalState.type === 'success' 
+                            ? 'bg-lime-500 hover:bg-lime-600 text-white' 
+                            : 'bg-gray-600 hover:bg-gray-700 text-white' // Adjusted error button color
+                    }`}
                 >
                     OK
                 </button>
@@ -420,7 +518,7 @@ const DocVerification = () => {
                 <span className="text-sm font-medium text-gray-700">{getDocumentLabel(type)}</span>
                 {ocrProgress[type] && (
                   <span className={`text-xs px-2 py-0.5 rounded-full ${
-                    ocrProgress[type] === 'Processed' ? 'bg-green-100 text-green-700' :
+                    ocrProgress[type] === 'Processed' || ocrProgress[type] === 'Verified' ? 'bg-green-100 text-green-700' :
                     ocrProgress[type].includes('Error') || ocrProgress[type].includes('Missing') ? 'bg-red-100 text-red-700' :
                     'bg-blue-100 text-blue-700'
                   }`}>
@@ -470,28 +568,27 @@ const DocVerification = () => {
           <div className="grid md:grid-cols-3 gap-6">
             {['invoice', 'bill', 'airway'].map((type) => {
               const docScoreData = perDocumentScores[type];
-              const uploaded = docsUploaded[type]; // Check if this specific doc was part of the process
+              const uploaded = docsUploaded[type]; 
               const label = getLabel(type);
               
               let content = 'Not Uploaded';
               let color = 'border-gray-300 bg-gray-50 text-gray-500';
 
-              if (uploaded && docScoreData) { // If uploaded and score data exists
-                if (docScoreData.error) { // Should not happen with current logic but good for robustness
+              if (uploaded && docScoreData) { 
+                if (docScoreData.error) { 
                     content = docScoreData.error;
                     color = 'border-red-400 bg-red-50 text-red-700';
                 } else if (docScoreData.matched) {
                     content = "Approved";
                     color = 'border-lime-400 bg-lime-50 text-lime-700';
-                } else { // If not matched (e.g. score < threshold, though current logic makes all matched)
+                } else { 
                     content = `${Math.round(docScoreData.score * 100)}% match`;
                     color = 'border-red-400 bg-red-50 text-red-700';
                 }
-              } else if (uploaded && !docScoreData) { // Uploaded but somehow no score data (e.g. still processing)
+              } else if (uploaded && !docScoreData) { 
                   content = ocrProgress[type] || 'Processing...';
                   color = 'border-blue-400 bg-blue-50 text-blue-700';
               }
-              // If not uploaded, default 'Not Uploaded' and gray color remains
 
               return (
                 <div key={type} className={`p-4 rounded-xl border text-center ${color}`}>
@@ -509,8 +606,9 @@ const DocVerification = () => {
           )}
           <div className="text-center mt-10">
                 <button
-                    onClick={() => setShowSuccessModal(true)}
+                    onClick={finalizeVerification}
                     className="bg-lime-500 hover:bg-lime-600 text-white font-semibold px-8 py-3 rounded-lg shadow-md transition duration-150 ease-in-out text-lg"
+                    disabled={!orderId} // Disable if orderId is not available
                 >
                     Finalize Verification
                 </button>
