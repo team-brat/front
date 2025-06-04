@@ -19,11 +19,12 @@ const BinRecommender = () => {
   const [confirmModalMessage, setConfirmModalMessage] = useState('');
   const [confirmModalTitle, setConfirmModalTitle] = useState('');
 
-  const API_BASE_URL = 'https://z0nql7r236.execute-api.us-east-2.amazonaws.com/dev';
+  // Updated API_BASE_URL as per instruction [1]
+  const API_BASE_URL = 'https://6l0s13fj76.execute-api.us-east-2.amazonaws.com/dev';
 
   useEffect(() => {
     if (skuData && skuData.sku_id) {
-      setSkuBarcode(skuData.serial_or_barcode || ''); // Pre-fill SKU barcode
+      setSkuBarcode(skuData.serial_or_barcode || ''); // Pre-fill SKU barcode from initial data
 
       const fetchBinRecommendation = async () => {
         setIsLoadingRecommendation(true);
@@ -31,15 +32,12 @@ const BinRecommender = () => {
         setRecommendedBinInfo(null);
         setLocBarcode(''); // Clear previous loc barcode before fetching new one
         try {
+          // API call updated as per instruction [1]
           const response = await axios.get(`${API_BASE_URL}/bin-loc/${skuData.sku_id}`);
           setRecommendedBinInfo(response.data);
           if (response.data) {
-            // Assuming the response structure might be different, adjust as needed.
-            // For example, if the new API returns `bin_id` or `location_id` directly.
-            // The original code used: response.data.recommended_location || response.data.bin_id || response.data.location
-            // Let's assume the new API might return a field like `recommended_bin_id` or similar.
-            // For now, we'll try to use existing fields or a common one like `bin_id`.
-            setLocBarcode(response.data.recommended_location || response.data.bin_id || response.data.location || response.data.location_id || '');
+            // Set locBarcode from API response fields: assigned_loc_id or loc_id
+            setLocBarcode(response.data.assigned_loc_id || response.data.loc_id || '');
           }
         } catch (err) {
           console.error("Failed to fetch bin recommendation:", err);
@@ -58,15 +56,19 @@ const BinRecommender = () => {
     }
   }, [skuData]);
 
-  const displayValue = (value) => value || '-';
+  // Updated displayValue function for consistency and to handle 0 correctly (similar to BinningRequest.jsx)
+  const displayValue = (value) => {
+    if (value !== null && value !== undefined && String(value).trim() !== "") {
+        if (typeof value === 'boolean') {
+            return '-'; // Booleans are represented as '-'
+        }
+        return value; // Display actual value (including 0)
+    }
+    return '-';
+  };
 
   const handleConfirmPlacement = async () => {
-    if (!skuData || !skuData.quantity) {
-      setConfirmModalTitle('Error');
-      setConfirmModalMessage('SKU data or quantity is missing.');
-      setShowConfirmModal(true);
-      return;
-    }
+    // Quantity check removed as it's not part of the new API payload for confirm
     if (!skuBarcode.trim() || !locBarcode.trim()) {
       setConfirmModalTitle('Error');
       setConfirmModalMessage('SKU Barcode and LOC Barcode are required.');
@@ -77,15 +79,16 @@ const BinRecommender = () => {
     setIsLoadingConfirm(true);
 
     try {
+      // Payload updated as per instruction [2]
       const payload = {
-        barcode: skuBarcode,
-        loc_barcode: locBarcode,
-        quantity: skuData.quantity,
+        serial_or_barcode: skuBarcode,
+        loc_id: locBarcode,
       };
+      // API call URL is correct as per instruction [2]
       const response = await axios.post(`${API_BASE_URL}/bin-loc/confirm`, payload);
       
       setConfirmModalTitle('Success');
-      setConfirmModalMessage(response.data.message || 'Bin placement confirmed successfully.');
+      setConfirmModalMessage(`${response.data.sku_id} has been successfully stored in ${response.data.loc_id}.`);
       setShowConfirmModal(true);
     } catch (err) {
       console.error("Failed to confirm bin placement:", err);
@@ -99,12 +102,12 @@ const BinRecommender = () => {
 
   const closeModal = () => {
     setShowConfirmModal(false);
-    const wasSuccess = confirmModalTitle === 'Success';
+    setSkuBarcode('');
+    setLocBarcode('');
+    setRecommendedBinInfo(null);
+    setRecommendationError(null);
     setConfirmModalMessage('');
     setConfirmModalTitle('');
-    if (wasSuccess) {
-        navigate('/binning/requests'); // Navigate back to requests list on success
-    }
   };
 
   // Basic Modal Component
@@ -114,16 +117,14 @@ const BinRecommender = () => {
     return (
       <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
         <div className="relative p-8 border w-full max-w-md m-auto flex-col flex bg-white rounded-lg shadow-xl">
+          <button
+            onClick={onClose}
+            className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+          >
+            &times;
+          </button>
           <h3 className={`text-2xl font-semibold mb-4 ${title === 'Error' ? 'text-red-600' : 'text-green-600'}`}>{title}</h3>
           <p className="text-gray-700 mb-6 whitespace-pre-wrap">{message}</p>
-          <div className="flex justify-end">
-            <button
-              onClick={onClose}
-              className="bg-gray-500 hover:bg-gray-400 text-white font-semibold px-6 py-2 rounded-lg shadow-sm transition"
-            >
-              Close
-            </button>
-          </div>
         </div>
       </div>
     );
@@ -137,7 +138,7 @@ const BinRecommender = () => {
         <h1 className="text-4xl font-bold tracking-tight text-gray-900">Bin Recommender</h1>
       </div>
 
-      {/* Selected Request Block */}
+      {/* Selected Request Block - Data source remains skuData, hardcoded LOC remains */}
       <div>
         <div className="text-lg font-semibold mb-4 text-gray-800">Selected Request</div>
         {!skuData ? (
@@ -146,7 +147,7 @@ const BinRecommender = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 bg-white p-8 rounded-xl border border-gray-200 shadow-sm">
-            <div className="text-base text-gray-800"><span className="font-semibold">LOC:</span> z1-a1-s1-b1</div> {/* This is still hardcoded as per original */}
+            <div className="text-base text-gray-800"><span className="font-semibold">LOC:</span> z1-a1-s1-b1</div> {/* This is still hardcoded as per original - assuming it's current location not covered by this API */}
             <div className="text-base text-gray-800"><span className="font-semibold">Supplier Name:</span> {displayValue(skuData.supplier_name)}</div>
             <div className="text-base text-gray-800"><span className="font-semibold">SKU Name:</span> {displayValue(skuData.sku_name)}</div>
             <div className="text-base text-gray-800"><span className="font-semibold">SKU ID:</span> {displayValue(skuData.sku_id)}</div>
@@ -173,12 +174,13 @@ const BinRecommender = () => {
           {!isLoadingRecommendation && !recommendationError && recommendedBinInfo && (
             <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
               <div className="text-base text-gray-800">
-                {/* Adjust based on the actual response structure of the new API */}
-                <span className="font-semibold">Recommended LOC:</span> {displayValue(recommendedBinInfo.recommended_location || recommendedBinInfo.bin_id || recommendedBinInfo.location || recommendedBinInfo.location_id)}
+                {/* Display recommended LOC from API response (assigned_loc_id or loc_id) */}
+                <span className="font-semibold">Recommended LOC:</span> {displayValue(recommendedBinInfo.assigned_loc_id || recommendedBinInfo.loc_id)}
               </div>
-              {recommendedBinInfo.details && (
+              {/* Display message from API response (previously details) */}
+              {recommendedBinInfo.message && (
                  <div className="text-sm text-gray-600 mt-2">
-                   <span className="font-semibold">Details:</span> {displayValue(recommendedBinInfo.details)}
+                   <span className="font-semibold">Details:</span> {displayValue(recommendedBinInfo.message)}
                  </div>
               )}
             </div>
@@ -215,7 +217,8 @@ const BinRecommender = () => {
             <button
               onClick={handleConfirmPlacement}
               className="bg-green-500 hover:bg-green-400 text-white font-semibold px-6 py-3 rounded-lg shadow-sm transition disabled:opacity-50"
-              disabled={isLoadingConfirm || !skuBarcode.trim() || !locBarcode.trim() || !skuData?.quantity}
+              // Updated disabled condition, removed quantity check
+              disabled={isLoadingConfirm || !skuBarcode.trim() || !locBarcode.trim()}
             >
               {isLoadingConfirm ? 'Confirming...' : 'Confirm'}
             </button>
