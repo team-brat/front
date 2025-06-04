@@ -39,6 +39,19 @@ const Header = () => {
     }))
   );
 
+  // Reacting to location changes to update active tab state
+  // This is a good practice, though not explicitly requested, it's a common bug fix.
+  // If this component doesn't re-mount on navigation, this useEffect is crucial.
+  React.useEffect(() => {
+    setTabsState((prevTabs) =>
+      prevTabs.map((tab) => ({
+        ...tab,
+        current: location.pathname.startsWith(tab.href),
+      }))
+    );
+  }, [location.pathname, filteredTabs]);
+
+
   const handleTabClick = (tabName) => {
     const selected = tabsState.find((tab) => tab.name === tabName);
     if (!selected) return;
@@ -60,7 +73,13 @@ const Header = () => {
 
   return (
     <header className="w-full bg-gradient-to-b from-white to-[#f8f9fb] px-6 lg:px-10 xl:px-16 py-8 shadow-sm rounded-b-2xl">
-      <div className="max-w-screen-2xl mx-auto flex flex-wrap justify-between items-center gap-y-6">
+      {/* 
+        Main layout container for header elements.
+        Default (<lg, approx <992px): Stacks Logo/Hello and RightContent vertically, aligns items to start.
+        lg+ (approx >=992px): Logo/Hello and RightContent in a row, space-between, items centered vertically.
+        xl+ (approx >=1324px): Behaves like lg for this container's direct children.
+      */}
+      <div className="max-w-screen-2xl mx-auto flex flex-col items-start gap-y-6 lg:flex-row lg:flex-wrap lg:justify-between lg:items-center">
         
         {/* 좌측 고정: 로고 + 인사말 */}
         <div className="flex items-center gap-4 min-w-[300px] h-[80px]">
@@ -71,13 +90,21 @@ const Header = () => {
             onClick={() => navigate('/')}
           />
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight">
-            Hello, {username.charAt(0).toUpperCase() + username.slice(1)}
+            Hello, {username ? username.charAt(0).toUpperCase() + username.slice(1) : 'User'}
           </h1>
         </div>
 
-        {/* 우측: 탭 + 로그인 상태 */}
-        <div className="flex flex-wrap items-center gap-4 justify-end">
-          <nav className="flex gap-6 px-8 h-[56px] items-center rounded-xl shadow border border-gray-200 bg-white/90 backdrop-blur-md">
+        {/* 
+          Right content block (Navigator + Login Status).
+          Default (<lg, approx <992px): Full width, Nav and LoginInfo stacked vertically, items aligned left.
+          lg (approx 992px - 1323px): Auto width, Nav and LoginInfo in a row, items centered vertically, Nav left & LoginInfo right (justify-between).
+          xl (approx >=1324px): Auto width, Nav and LoginInfo in a row, items centered vertically, both grouped to the right (justify-end).
+        */}
+        <div className="w-full flex flex-col items-start gap-4 
+                        lg:w-auto lg:flex-row lg:flex-wrap lg:items-center lg:justify-between 
+                        xl:justify-end">
+          {/* Added overflow-x-auto for cases where tabs might exceed available width */}
+          <nav className="flex gap-x-6 px-8 h-[56px] items-center rounded-xl shadow border border-gray-200 bg-white/90 backdrop-blur-md overflow-x-auto">
             {tabsState.map((tab) => (
               <button
                 key={tab.name}
@@ -86,26 +113,29 @@ const Header = () => {
                   tab.current
                     ? 'text-[#4a7c59] font-semibold border-b-2 border-[#4a7c59]'
                     : 'text-gray-600 hover:text-[#4a7c59]',
-                  'text-lg pb-1 transition'
+                  'text-lg pb-1 transition whitespace-nowrap' // Added whitespace-nowrap
                 )}
+                aria-current={tab.current ? 'page' : undefined}
               >
                 {tab.name}
               </button>
             ))}
           </nav>
 
-          <div className="bg-[#f1f5f9] px-4 h-[56px] flex items-center rounded-xl border border-[#e2e8f0]">
-            <p className="text-base text-gray-700 font-medium whitespace-nowrap">
-              Logged in as <span className="font-semibold">{userAuth} #{workId}</span>
-            </p>
-          </div>
+          <div className="flex items-center gap-4">
+            <div className="bg-[#f1f5f9] px-4 h-[56px] flex items-center rounded-xl border border-[#e2e8f0]">
+              <p className="text-base text-gray-700 font-medium whitespace-nowrap">
+                Logged in as <span className="font-semibold">{userAuth} #{workId}</span>
+              </p>
+            </div>
 
-          <button
-            onClick={handleLogout}
-            className="h-[56px] flex items-center px-4 border border-transparent text-[#d9534f] hover:text-[#c9302c] underline"
-          >
-            Logout
-          </button>
+            <button
+              onClick={handleLogout}
+              className="h-[56px] flex items-center px-4 border border-transparent text-[#d9534f] hover:text-[#c9302c] underline"
+            >
+              Logout
+            </button>
+          </div>
         </div>
       </div>
     </header>

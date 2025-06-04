@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
 import Tesseract from 'tesseract.js';
 import { XCircleIcon } from '@heroicons/react/20/solid';
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 const CreateReceiving = () => {
-  const [formData, setFormData] = useState({});
+  const [formData, setFormData] = useState({
+    scheduledDate: null // Initialize scheduledDate for DatePicker
+  });
   const [formErrors, setFormErrors] = useState({});
   const [attachments, setAttachments] = useState({
     invoice: null,
@@ -73,12 +77,12 @@ const CreateReceiving = () => {
 
   const validateOcrTexts = () => {
     const errors = {};
-    const resetOcrText = (key) => {
-      setOcrTexts(prev => ({
-        ...prev,
-        [key]: ''
-      }));
-    };
+    // const resetOcrText = (key) => { // This function is defined but not used. Consider removing if not needed.
+    //   setOcrTexts(prev => ({
+    //     ...prev,
+    //     [key]: ''
+    //   }));
+    // };
 
     if (!/INV-\d+/.test(ocrTexts.invoice)) {
       errors.invoice = 'Please upload a valid Invoice document...';
@@ -131,34 +135,48 @@ const CreateReceiving = () => {
     console.log('Current formData:', formData);
     console.log('Current attachments:', attachments);
   
+    // Note: 'ScheduledDate' in requiredFields might be a typo if formData uses 'scheduledDate'
     const requiredFields = [
-      'ScheduledDate', 'SupplierName', 'SupplierNumber',
+      'scheduledDate', 'SupplierName', 'SupplierNumber', // Changed 'ScheduledDate' to 'scheduledDate'
       'SKUName', 'SKUNumber', 'Barcode',
       'Length', 'Width', 'Height', 'Depth', 'Volume', 'Weight',
       'ShipmentNumber', 'TruckNumber', 'DriverContact'
     ];
   
-    const errors = {};
+    const currentFormErrors = {};
     requiredFields.forEach((field) => {
       if (!formData[field]) {
-        errors[field] = 'Required';
+        currentFormErrors[field] = 'Required';
       }
     });
 
-    const ocrErrors = validateOcrTexts();
-    if (Object.keys(ocrErrors).length > 0) {
-      setOcrErrors(ocrErrors);
+    const currentOcrErrors = validateOcrTexts();
+    if (Object.keys(currentOcrErrors).length > 0) {
+      setOcrErrors(currentOcrErrors);
+      // If there are also form errors, set them before returning
+      if (Object.keys(currentFormErrors).length > 0) {
+        setFormErrors(currentFormErrors);
+      }
       return;
+    } else {
+      setOcrErrors({}); // Clear previous OCR errors if validation passes
     }
+
 
     const matchingErrors = validateMatchingTexts();
     if (matchingErrors.length > 0) {
       setAlertErrors(matchingErrors);
+       // If there are also form errors, set them before returning
+       if (Object.keys(currentFormErrors).length > 0) {
+        setFormErrors(currentFormErrors);
+      }
       return;
+    } else {
+      setAlertErrors([]); // Clear previous alert errors
     }
   
-    if (Object.keys(errors).length > 0) {
-      setFormErrors(errors);
+    if (Object.keys(currentFormErrors).length > 0) {
+      setFormErrors(currentFormErrors);
       return;
     } else {
       setFormErrors({});
@@ -168,42 +186,33 @@ const CreateReceiving = () => {
     const RECEIVING_ORDERS_ENDPOINT = `${API_URL}/receiving-orders`;
   
     const documentsArray = [
-      {
-        document_type: "INVOICE",
-        ...attachments.invoice
-      },
-      {
-        document_type: "BILL_OF_ENTRY",
-        ...attachments.bill_of_entry
-      },
-      {
-        document_type: "AIRWAY_BILL",
-        ...attachments.airway_bill
-      }
-    ];
+      attachments.invoice ? { document_type: "INVOICE", ...attachments.invoice } : null,
+      attachments.bill_of_entry ? { document_type: "BILL_OF_ENTRY", ...attachments.bill_of_entry } : null,
+      attachments.airway_bill ? { document_type: "AIRWAY_BILL", ...attachments.airway_bill } : null
+    ].filter(doc => doc !== null); // Filter out null documents if not all are attached
   
     const payload = {
       request_details: {
-        scheduled_date: formData.scheduledDate,
-        supplier_name: formData.supplierName,
-        supplier_number: formData.supplierNumber,
-        sku_name: formData.skuName,
-        sku_number: formData.skuNumber,
-        barcode: formData.barcode,
+        scheduled_date: formData.scheduledDate ? new Date(formData.scheduledDate).toISOString().split('T')[0] : null, // Format date
+        supplier_name: formData.SupplierName,
+        supplier_number: formData.SupplierNumber,
+        sku_name: formData.SKUName,
+        sku_number: formData.SKUNumber,
+        barcode: formData.Barcode,
         notes: formData.notes || "자동 생성 요청입니다."
       },
       sku_information: {
-        length: parseFloat(formData.length),
-        width: parseFloat(formData.width),
-        height: parseFloat(formData.height),
-        depth: parseFloat(formData.depth),
-        volume: parseFloat(formData.volume),
-        weight: parseFloat(formData.weight)
+        length: parseFloat(formData.Length),
+        width: parseFloat(formData.Width),
+        height: parseFloat(formData.Height),
+        depth: parseFloat(formData.Depth),
+        volume: parseFloat(formData.Volume),
+        weight: parseFloat(formData.Weight)
       },
       shipment_information: {
-        shipment_number: formData.shipmentNumber,
-        truck_number: formData.truckNumber,
-        driver_contact: formData.driverContact
+        shipment_number: formData.ShipmentNumber,
+        truck_number: formData.TruckNumber,
+        driver_contact: formData.DriverContact
       },
       documents: documentsArray,
       user_id: "brat"
@@ -228,14 +237,16 @@ const CreateReceiving = () => {
         console.log('✅ Success! Order created:', responseData);
         
         console.log("Invoice에서 추출된 텍스트:", ocrTexts.invoice);
-
+        // Optionally reset form or redirect
       } else {
         const errorData = await response.json();
         console.error('❌ Failed to create order:', errorData);
+        setAlertErrors(prev => [...prev, `Failed to create order: ${errorData.message || 'Unknown error'}`]);
       }
   
     } catch (error) {
       console.error('🔥 Error creating receiving order:', error);
+      setAlertErrors(prev => [...prev, `Error creating receiving order: ${error.message}`]);
     }
   };
 
@@ -256,16 +267,23 @@ const CreateReceiving = () => {
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
-            <input className={`input ${formErrors['scheduledDate'] ? 'border-red-500' : ''}`} type="date" name="scheduledDate" onChange={handleChange} />
+            <DatePicker
+              selected={formData.scheduledDate}
+              onChange={(date) => setFormData({ ...formData, scheduledDate: date })}
+              className={`input ${formErrors['scheduledDate'] ? 'border-red-500' : ''}`}
+              placeholderText="Scheduled Date"
+              dateFormat="yyyy-MM-dd"
+            />
             {formErrors['scheduledDate'] && <p className="text-red-400 text-base">Required</p>}
           </div>
-          {['SupplierName', 'SupplierNumber', 'SkuName', 'SkuNumber', 'Barcode'].map((field) => (
+          {['SupplierName', 'SupplierNumber', 'SKUName', 'SKUNumber', 'Barcode'].map((field) => (
             <div key={field} className="space-y-2">
               <input
                 className={`input ${formErrors[field] ? 'border-red-500' : ''}`}
-                name={field}
-                placeholder={field.replace(/([A-Z])/g, ' $1')}
+                name={field} // Ensure these names match formData keys if using handleChange
+                placeholder={field.replace(/([A-Z])/g, ' $1').trim()}
                 onChange={handleChange}
+                value={formData[field] || ''}
               />
               {formErrors[field] && <p className="text-red-400 text-base">Required</p>}
             </div>
@@ -283,11 +301,12 @@ const CreateReceiving = () => {
             <div key={field} className="space-y-2">
               <input
                 className={`input ${formErrors[field] ? 'border-red-500' : ''}`}
-                name={field}
+                name={field} // Ensure these names match formData keys
                 type="number"
                 step="0.1"
                 placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
                 onChange={handleChange}
+                value={formData[field] || ''}
               />
               {formErrors[field] && <p className="text-red-400 text-base">Required</p>}
             </div>
@@ -304,9 +323,10 @@ const CreateReceiving = () => {
             <div key={field} className="space-y-2">
               <input
                 className={`input ${formErrors[field] ? 'border-red-500' : ''}`}
-                name={field}
-                placeholder={field.replace(/([A-Z])/g, ' $1')}
+                name={field} // Ensure these names match formData keys
+                placeholder={field.replace(/([A-Z])/g, ' $1').trim()}
                 onChange={handleChange}
+                value={formData[field] || ''}
               />
               {formErrors[field] && <p className="text-red-400 text-base">Required</p>}
             </div>
@@ -321,15 +341,15 @@ const CreateReceiving = () => {
         <div className="space-y-6">
           {[{ label: 'Invoice', key: 'invoice', emoji: '' }, { label: 'Bill of Entry', key: 'bill_of_entry', emoji: '' }, { label: 'Airway Bill', key: 'airway_bill', emoji: '' }].map(({ label, key, emoji }) => (
             <div key={key} className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <span className={`text-xl font-dm md:w-40 ${attachments[key] ? (ocrErrors[key] ? 'text-red-400' : 'text-lime-400') : 'text-gray-400'}`}>
+              <span className={`text-xl font-dm md:w-auto ${attachments[key] ? (ocrErrors[key] ? 'text-red-400' : 'text-lime-400') : 'text-gray-400'}`}>
                 {uploadingStatus[key] ? <span className="text-blue-400">{`${emoji} ${label} Uploading...`}</span> : (attachments[key] ? (ocrErrors[key] ? `🚨 ${label} Resubmit required` : `✅ ${label} Submitted`) : `${emoji} ${label}`)}
               </span>
-              {ocrErrors[key] && <p className="text-red-400 text-base md:w-40 ml-48 mt-2"><i>{ocrErrors[key]}...</i></p>}
+              {ocrErrors[key] && <p className="text-red-400 text-base md:w-auto ml-0 md:ml-4 mt-1 md:mt-0"><i>{ocrErrors[key]}</i></p>}
               <input
                 type="file"
-                accept=".png,.jpg,.jpeg"
+                accept=".png,.jpg,.jpeg,.pdf" // Added PDF support as it's common
                 onChange={(e) => handleFileChange(e, key)}
-                className="block w-full md:w-auto text-base text-white file:mr-3 file:py-2 file:px-5 file:rounded-lg file:border-0 file:text-base file:font-medium file:bg-gray-400 file:text-white hover:file:bg-gray-600"
+                className="block w-full md:w-auto text-base text-gray-700 file:mr-3 file:py-2 file:px-5 file:rounded-lg file:border-0 file:text-base file:font-medium file:bg-gray-200 file:text-gray-700 hover:file:bg-gray-300 cursor-pointer"
                 lang="en"
               />
             </div>
@@ -355,7 +375,12 @@ const CreateReceiving = () => {
               </div>
             </div>
           </div>
-          <button onClick={handleAlertClose} className="block w-full md:w-auto text-lg text-gray-700 file:mr-3 file:py-2 file:px-5 file:rounded-lg file:border file:border-gray-300 file:text-lg file:font-medium file:bg-white file:text-gray-700 hover:file:bg-gray-100">
+          <button 
+            type="button" // Important: type="button" to prevent form submission
+            onClick={handleAlertClose} 
+            className="absolute top-2 right-2 p-1.5 rounded-md text-red-500 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2 focus:ring-offset-red-50"
+          >
+            <span className="sr-only">Dismiss</span>
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M10 9.293l4.646-4.647a.5.5 0 01.708.708L10.707 10l4.647 4.646a.5.5 0 01-.708.708L10 10.707l-4.646 4.647a.5.5 0 01-.708-.708L9.293 10 4.646 5.354a.5.5 0 11.708-.708L10 9.293z" clipRule="evenodd" />
             </svg>
@@ -366,9 +391,10 @@ const CreateReceiving = () => {
       <div className="pt-6 text-right">
         <button
           type="submit"
-          className="bg-gray-400 hover:bg-gray-600 text-white font-semibold px-6 py-3 rounded-xl shadow-lg transition text-lg"
+          className="bg-gray-500 hover:bg-gray-700 text-white font-semibold px-6 py-3 rounded-xl shadow-lg transition text-lg disabled:opacity-50"
+          disabled={Object.values(uploadingStatus).some(status => status)} // Disable button during uploads
         >
-          Submit
+          {Object.values(uploadingStatus).some(status => status) ? 'Processing...' : 'Submit'}
         </button>
       </div>
 
@@ -385,11 +411,31 @@ const CreateReceiving = () => {
   }
   .input::placeholder {
     color: #6b7280;
-    font-size: 1.3rem; 
+    font-size: 1rem; /* Adjusted placeholder size to match input */
   }
-  input[type="date"] {
-    color-scheme: light;
+  /* Styling for react-datepicker */
+  .react-datepicker-wrapper {
+    width: 100%;
   }
+  .react-datepicker__input-container input {
+    /* Ensure DatePicker input inherits custom .input styles */
+    background-color: #ffffff;
+    padding: 1rem 1.25rem;
+    border-radius: 0.5rem;
+    border: 1px solid #d1d5db;
+    color: #111827;
+    font-size: 1rem;
+    width: 100% !important; /* Important to override default width */
+    font-family: 'Inter', sans-serif;
+  }
+  .react-datepicker__input-container input::placeholder {
+    color: #6b7280;
+    font-size: 1rem;
+  }
+  .react-datepicker__input-container input.border-red-500 {
+      border-color: #ef4444; /* Ensure error border applies */
+  }
+
 `}</style>
 
     </form>
