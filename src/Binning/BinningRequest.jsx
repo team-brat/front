@@ -65,45 +65,61 @@ const BinningRequest = () => {
         )}
 
         {!isLoading && !error && (
-          <div className="overflow-x-auto rounded-xl border border-gray-200 shadow">
-            <table className="min-w-full text-sm text-left">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-4 font-medium text-gray-700">Received Date</th>
-                  <th className="px-6 py-4 font-medium text-gray-700">Supplier Name</th>
-                  <th className="px-6 py-4 font-medium text-gray-700">Supplier ID</th>
-                  <th className="px-6 py-4 font-medium text-gray-700">SKU Name</th>
-                  <th className="px-6 py-4 font-medium text-gray-700">SKU ID</th>
-                  <th className="px-6 py-4 font-medium text-gray-700">Barcode / Serial</th>
-                  <th className="px-6 py-4 font-medium text-gray-700">Quantity</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {binningData.map((item, idx) => (
-                  <tr
-                    key={item.inspection_request_id || idx} // Prefer unique ID if available
-                    className="bg-white hover:bg-gray-50 cursor-pointer transition duration-150"
-                    onClick={() => handleRowClick(item)}
-                  >
-                    <td className="px-6 py-4 text-gray-800">{getDisplayValue(item.received_date)}</td>
-                    <td className="px-6 py-4 text-gray-800">{getDisplayValue(item.supplier_name)}</td>
-                    <td className="px-6 py-4 text-gray-800">{getDisplayValue(item.supplier_id)}</td>
-                    <td className="px-6 py-4 text-gray-800">{getDisplayValue(item.sku_name)}</td>
-                    <td className="px-6 py-4 text-gray-800">{getDisplayValue(item.sku_id)}</td>
-                    <td className="px-6 py-4 text-gray-800">{getDisplayValue(item.serial_or_barcode)}</td>
-                    <td className="px-6 py-4 text-gray-800">{getDisplayValue(item.quantity)}</td>
-                  </tr>
-                ))}
-                {binningData.length === 0 && (
+          <>
+            {/* Informational message about row clickability */}
+            {binningData.length > 0 && (
+              <div 
+                className="mb-8 px-4 py-3 bg-sky-50 border border-sky-300 text-sky-700 rounded-lg shadow-sm"
+                role="alert"
+              >
+                <p>
+                  <span className="font-semibold">
+                    ℹ️ Note:
+                  </span> Click on a row below to navigate to the Bin Recommendation page for the selected SKU.
+                </p>
+              </div>
+            )}
+
+            <div className="overflow-x-auto rounded-xl border border-gray-200 shadow">
+              <table className="min-w-full text-sm text-left">
+                <thead className="bg-gray-50">
                   <tr>
-                    <td colSpan="7" className="text-center text-gray-500 py-6">
-                      No binning requests found.
-                    </td>
+                    <th className="px-6 py-4 font-medium text-gray-700">Received Date</th>
+                    <th className="px-6 py-4 font-medium text-gray-700">Supplier Name</th>
+                    <th className="px-6 py-4 font-medium text-gray-700">Supplier ID</th>
+                    <th className="px-6 py-4 font-medium text-gray-700">SKU Name</th>
+                    <th className="px-6 py-4 font-medium text-gray-700">SKU ID</th>
+                    <th className="px-6 py-4 font-medium text-gray-700">Barcode / Serial</th>
+                    <th className="px-6 py-4 font-medium text-gray-700">Quantity</th>
                   </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {binningData.map((item, idx) => (
+                    <tr
+                      key={item.inspection_request_id || idx} // Prefer unique ID if available
+                      className="bg-white hover:bg-gray-50 cursor-pointer transition duration-150"
+                      onClick={() => handleRowClick(item)}
+                    >
+                      <td className="px-6 py-4 text-gray-800">{getDisplayValue(item.received_date)}</td>
+                      <td className="px-6 py-4 text-gray-800">{getDisplayValue(item.supplier_name)}</td>
+                      <td className="px-6 py-4 text-gray-800">{getDisplayValue(item.supplier_id)}</td>
+                      <td className="px-6 py-4 text-gray-800">{getDisplayValue(item.sku_name)}</td>
+                      <td className="px-6 py-4 text-gray-800">{getDisplayValue(item.sku_id)}</td>
+                      <td className="px-6 py-4 text-gray-800">{getDisplayValue(item.serial_or_barcode)}</td>
+                      <td className="px-6 py-4 text-gray-800">{getDisplayValue(item.quantity)}</td>
+                    </tr>
+                  ))}
+                  {binningData.length === 0 && (
+                    <tr>
+                      <td colSpan="7" className="text-center text-gray-500 py-6">
+                        No binning requests found.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
     </div>

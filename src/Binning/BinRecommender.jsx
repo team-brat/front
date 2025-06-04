@@ -30,15 +30,17 @@ const BinRecommender = () => {
         setIsLoadingRecommendation(true);
         setRecommendationError(null);
         setRecommendedBinInfo(null);
-        setLocBarcode(''); // Clear previous loc barcode before fetching new one
+        setLocBarcode(''); // Clear previous loc barcode before fetching new one or if user typed something
         try {
           // API call updated as per instruction [1]
           const response = await axios.get(`${API_BASE_URL}/bin-loc/${skuData.sku_id}`);
           setRecommendedBinInfo(response.data);
-          if (response.data) {
-            // Set locBarcode from API response fields: assigned_loc_id or loc_id
-            setLocBarcode(response.data.assigned_loc_id || response.data.loc_id || '');
-          }
+          // LOC Barcode input in "Confirm Bin Placement" should not be pre-filled from recommendation.
+          // The recommended LOC is displayed separately.
+          // The line below that previously set locBarcode has been removed.
+          // if (response.data) {
+          //   setLocBarcode(response.data.assigned_loc_id || response.data.loc_id || '');
+          // }
         } catch (err) {
           console.error("Failed to fetch bin recommendation:", err);
           setRecommendationError(err.response?.data?.message || err.message || 'Failed to fetch bin recommendation');
@@ -102,12 +104,28 @@ const BinRecommender = () => {
 
   const closeModal = () => {
     setShowConfirmModal(false);
-    setSkuBarcode('');
-    setLocBarcode('');
-    setRecommendedBinInfo(null);
-    setRecommendationError(null);
+    // Reset states, including skuBarcode and locBarcode for the input fields
+    setSkuBarcode(skuData?.serial_or_barcode || ''); // Reset SKU to original or empty if no skuData
+    setLocBarcode(''); // Reset LOC Barcode input to empty
+    
+    // It might be better to navigate back or clear skuData to truly reset the page
+    // For now, just resetting input fields and modal state.
+    // If skuData is still present, useEffect will run again and fetch recommendation,
+    // which will keep recommendedBinInfo populated but locBarcode input will be empty.
+    
+    // If the intention is to go back to a state where user can select another SKU,
+    // then navigate('/some-previous-page') or clearing skuData (e.g., navigate('.', { replace: true, state: {} }))
+    // might be more appropriate.
+    // For now, keeping the reset simple as per previous logic for modal closure.
+    // setRecommendedBinInfo(null); // This might be cleared by useEffect if skuData changes, or kept if skuData is same
+    // setRecommendationError(null); // Same as above
     setConfirmModalMessage('');
     setConfirmModalTitle('');
+
+    // If we want to re-fetch recommendation or ensure UI consistency after closing modal
+    // without navigating away, we might need to re-evaluate what `closeModal` should fully reset.
+    // Current behavior: SKU input resets to current skuData's barcode, LOC input clears.
+    // Recommendation display remains if skuData hasn't changed.
   };
 
   // Basic Modal Component
@@ -210,7 +228,7 @@ const BinRecommender = () => {
               type="text"
               placeholder="Enter LOC Barcode"
               className="w-full md:w-1/3 border border-gray-300 rounded-lg px-4 py-3 text-gray-800 shadow-sm"
-              value={locBarcode}
+              value={locBarcode} // This will now be empty initially (after recommendation) and only be filled by user input
               onChange={(e) => setLocBarcode(e.target.value)}
               disabled={isLoadingConfirm}
             />
