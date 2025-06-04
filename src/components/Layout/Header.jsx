@@ -55,7 +55,7 @@ const Header = () => {
   const handleLogout = () => {
     // Implement logout logic here
     console.log('User logged out');
-    navigate('/signin');
+    navigate('/login');
   };
 
   return (
