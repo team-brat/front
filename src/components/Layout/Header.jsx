@@ -52,6 +52,12 @@ const Header = () => {
     navigate(selected.href);
   };
 
+  const handleLogout = () => {
+    // Implement logout logic here
+    console.log('User logged out');
+    navigate('/signin');
+  };
+
   return (
     <header className="w-full bg-gradient-to-b from-white to-[#f8f9fb] px-6 lg:px-10 xl:px-16 py-8 shadow-sm rounded-b-2xl">
       <div className="max-w-screen-2xl mx-auto flex flex-wrap justify-between items-center gap-y-6">
@@ -70,7 +76,7 @@ const Header = () => {
         </div>
 
         {/* 우측: 탭 + 로그인 상태 */}
-        <div className="flex flex-wrap items-center gap-6 justify-end">
+        <div className="flex flex-wrap items-center gap-4 justify-end">
           <nav className="flex gap-6 px-8 h-[56px] items-center rounded-xl shadow border border-gray-200 bg-white/90 backdrop-blur-md">
             {tabsState.map((tab) => (
               <button
@@ -88,11 +94,18 @@ const Header = () => {
             ))}
           </nav>
 
-          <div className="bg-[#f1f5f9] px-6 h-[56px] flex items-center rounded-xl shadow border border-[#e2e8f0]">
+          <div className="bg-[#f1f5f9] px-4 h-[56px] flex items-center rounded-xl border border-[#e2e8f0]">
             <p className="text-base text-gray-700 font-medium whitespace-nowrap">
               Logged in as <span className="font-semibold">{userAuth} #{workId}</span>
             </p>
           </div>
+
+          <button
+            onClick={handleLogout}
+            className="h-[56px] flex items-center px-4 border border-transparent text-[#d9534f] hover:text-[#c9302c] underline"
+          >
+            Logout
+          </button>
         </div>
       </div>
     </header>
