@@ -466,7 +466,7 @@ const DocVerification = () => {
             </div>
           )}
           
-          <h4 className="text-md font-semibold text-gray-700 mb-2">Per Document Scores:</h4>
+          <h4 className="text-md font-semibold text-gray-700 mb-2">Per Document:</h4>
           <div className="grid md:grid-cols-3 gap-6">
             {['invoice', 'bill', 'airway'].map((type) => {
               const docScoreData = perDocumentScores[type];
