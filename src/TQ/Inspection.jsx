@@ -215,7 +215,7 @@ const Inspection = () => {
               <button
                 onClick={handleBarcodeConfirm}
                 disabled={isLoading || !barcode}
-                className={`bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-lg shadow-sm text-base ${
+                className={`bg-lime-500 hover:bg-lime-400 text-white font-semibold px-6 py-2 rounded-lg shadow-sm text-base ${
                   (isLoading || !barcode) ? 'opacity-50 cursor-not-allowed' : ''
                 }`}
               >
