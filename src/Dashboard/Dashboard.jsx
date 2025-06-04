@@ -11,6 +11,7 @@ import {
 } from 'chart.js';
 import { Line, Pie } from 'react-chartjs-2';
 import Header from '../components/Layout/Header';
+import Footer from '../components/Layout/Footer';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, ArcElement, Tooltip, Legend);
 
@@ -164,6 +165,7 @@ const WarehouseDashboard = () => {
           </div>
         </section>
       </main>
+      <Footer />
     </div>
   );
 };

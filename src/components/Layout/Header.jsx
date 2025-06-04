@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useMemo, useEffect } from 'react';
 import { UserAuthContext } from '../../App';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -11,58 +11,71 @@ const Header = () => {
   const location = useLocation();
   const { username, userAuth, workId } = useContext(UserAuthContext);
 
-  const initialTabs = userAuth === 'operator' 
-    ? [
-        { name: 'Dashboard', href: '/dashboard' },
-        { name: 'Receiving', href: '/receiving/create' },
-        { name: 'TQ', href: '/tq/inspection-records' },
-        { name: 'Binning', href: '/binning/request' },
-        { name: 'Dispatch', href: '/dispatch' },
-        { name: 'SKU', href: '/sku' },
-      ]
-    : [
-        { name: 'Receiving', href: '/receiving/create' },
-        { name: 'TQ', href: '/tq/inspection-records' },
-        { name: 'Binning', href: '/binning/request' },
-        { name: 'Dispatch', href: '/dispatch' },
-        { name: 'SKU', href: '/sku' },
-      ];
+  // Memoize the base list of tabs (without 'current' state) based on userAuth.
+  // This ensures the list of tabs is stable unless userAuth changes.
+  const baseTabs = useMemo(() => {
+    const operatorTabs = [
+      { name: 'Dashboard', href: '/dashboard' },
+      { name: 'Receiving', href: '/receiving/create' },
+      { name: 'TQ', href: '/tq/inspection-records' },
+      { name: 'Binning', href: '/binning/request' },
+      { name: 'Dispatch', href: '/dispatch' },
+      { name: 'SKU', href: '/sku' },
+    ];
+    const nonOperatorTabs = [
+      { name: 'Receiving', href: '/receiving/create' },
+      { name: 'TQ', href: '/tq/inspection-records' },
+      { name: 'Binning', href: '/binning/request' },
+      { name: 'Dispatch', href: '/dispatch' },
+      { name: 'SKU', href: '/sku' },
+    ];
 
-  const filteredTabs = userAuth === 'supplier'
-    ? initialTabs.filter((tab) => tab.name !== 'Dashboard')
-    : initialTabs;
+    let currentTabs = userAuth === 'operator' ? operatorTabs : nonOperatorTabs;
 
+    if (userAuth === 'supplier') {
+      // If user is a supplier, filter out 'Dashboard' from their tab list.
+      // This assumes nonOperatorTabs might include 'Dashboard', or handles it defensively.
+      // Based on the provided nonOperatorTabs, 'Dashboard' is already excluded.
+      currentTabs = currentTabs.filter((tab) => tab.name !== 'Dashboard');
+    }
+    
+    return currentTabs;
+  }, [userAuth]);
+
+  // State for tabs, including their 'current' status.
+  // Initialized based on baseTabs and the current location.
   const [tabsState, setTabsState] = useState(() =>
-    filteredTabs.map((tab) => ({
+    baseTabs.map((tab) => ({
       ...tab,
       current: location.pathname.startsWith(tab.href),
     }))
   );
 
-  // Reacting to location changes to update active tab state
-  // This is a good practice, though not explicitly requested, it's a common bug fix.
-  // If this component doesn't re-mount on navigation, this useEffect is crucial.
-  React.useEffect(() => {
-    setTabsState((prevTabs) =>
-      prevTabs.map((tab) => ({
+  // Effect to update tabsState when baseTabs (due to userAuth change) or location.pathname changes.
+  // This ensures tabsState is always correctly reflecting the available tabs and the active route.
+  useEffect(() => {
+    setTabsState(
+      baseTabs.map((tab) => ({
         ...tab,
         current: location.pathname.startsWith(tab.href),
       }))
     );
-  }, [location.pathname, filteredTabs]);
+  }, [baseTabs, location.pathname]);
 
 
   const handleTabClick = (tabName) => {
-    const selected = tabsState.find((tab) => tab.name === tabName);
-    if (!selected) return;
+    const selectedTab = tabsState.find((tab) => tab.name === tabName);
+    if (!selectedTab) return;
 
-    setTabsState((prev) =>
-      prev.map((tab) => ({
+    // Optimistically update the UI for tab selection for better perceived responsiveness.
+    // The useEffect above will then re-evaluate and confirm this state once navigation completes.
+    setTabsState((prevTabs) =>
+      prevTabs.map((tab) => ({
         ...tab,
         current: tab.name === tabName,
       }))
     );
-    navigate(selected.href);
+    navigate(selectedTab.href); // Perform navigation
   };
 
   const handleLogout = () => {

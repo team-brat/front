@@ -1,6 +1,7 @@
 import React, { useContext } from 'react';
 import Header from '../components/Layout/Header';
 import Sidebar from '../components/Layout/Sidebar';
+import Footer from '../components/Layout/Footer';
 import { Outlet } from 'react-router-dom';
 import { UserAuthContext } from '../App'; // Import the context
 
@@ -23,6 +24,7 @@ const TQTemplate = () => {
           <Outlet />
         </div>
       </div>
+      <Footer />
     </div>
   );
 };
