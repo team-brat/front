@@ -23,7 +23,8 @@ const Sidebar = ({ tabs, header }) => {
   });
 
   return (
-    <aside className="w-full xl1280:w-64 px-4 py-6">
+    <aside className="w-full xl1280:w-64 py-6 xl1280:px-4 pl-2 pt-8
+    ">
 
       {/* Header */}
       {header && (
@@ -37,21 +38,25 @@ const Sidebar = ({ tabs, header }) => {
       <div className="block xl1280:hidden relative">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="w-full flex items-center justify-between py-3 px-4 bg-white text-gray-800 font-semibold rounded-lg border border-gray-300 shadow-sm"
+          className="w-full flex items-center justify-between py-3 px-6 bg-white text-gray-800 font-semibold rounded-lg border border-gray-300 shadow-sm"
         >
-          <span>{currentTab?.name || 'Select Tab'}</span>
+          <span className="truncate">{currentTab?.name || 'Select Tab'}</span>
           <ChevronDownIcon className={`w-5 h-5 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
         </button>
 
         {isOpen && (
-          <div className="absolute top-full left-0 right-0 mt-2 z-50 bg-white rounded-lg shadow-lg border border-gray-200">
+          <div
+            className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 z-50 
+                       bg-white rounded-lg shadow-lg border border-gray-200 
+                       w-full max-w-lg"
+          >
             {modifiedTabs.map(tab => (
               <NavLink
                 key={tab.href}
                 to={tab.href}
                 onClick={() => setIsOpen(false)}
                 className={({ isActive }) =>
-                  `block py-3 px-4 text-md text-left transition rounded-md 
+                  `block py-3 px-6 text-md text-left transition rounded-md 
                    ${isActive
                      ? 'bg-[#e0f2f1] text-[#4a7c59] font-semibold'
                      : 'hover:bg-gray-100 text-gray-800'}`
