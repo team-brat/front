@@ -46,13 +46,12 @@ const Packing = () => {
               <input
                 type="text"
                 className="px-4 py-2 border border-gray-300 rounded-md"
-                placeholder="RFID 입력"
                 value={toteRfid}
                 onChange={(e) => setToteRfid(e.target.value)}
               />
               <button
                 onClick={handleToteConfirm}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-lg"
+                className="px-4 py-2 bg-lime-500 hover:bg-lime-400 text-white font-semibold rounded-lg"
               >
                 Confirm
               </button>
@@ -80,16 +79,20 @@ const Packing = () => {
           <div className="bg-white p-6 rounded-xl shadow border border-gray-200 space-y-4">
             <div className="flex items-center space-x-4">
               <label className="font-medium text-gray-800">ITEM RFID</label>
+              <button
+                className="px-4 py-2 bg-gray-500 hover:bg-gray-400 text-white font-semibold rounded-lg"
+              >
+                Search
+              </button>
               <input
                 type="text"
                 className="px-4 py-2 border border-gray-300 rounded-md"
-                placeholder="RFID 입력"
                 value={itemRfid}
                 onChange={(e) => setItemRfid(e.target.value)}
               />
               <button
                 onClick={handleItemConfirm}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-lg"
+                className="px-4 py-2 bg-lime-500 hover:bg-lime-400 text-white font-semibold rounded-lg"
               >
                 Confirm
               </button>
