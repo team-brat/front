@@ -19,14 +19,14 @@ const Header = () => {
       { name: 'Receiving', href: '/receiving/create' },
       { name: 'TQ', href: '/tq/inspection-records' },
       { name: 'Binning', href: '/binning/request' },
-      { name: 'Dispatch', href: '/dispatch' },
+      { name: 'Dispatch', href: '/dispatch/requests' },
       { name: 'SKU', href: '/sku' },
     ];
     const nonOperatorTabs = [
       { name: 'Receiving', href: '/receiving/create' },
       { name: 'TQ', href: '/tq/inspection-records' },
       { name: 'Binning', href: '/binning/request' },
-      { name: 'Dispatch', href: '/dispatch' },
+      { name: 'Dispatch', href: '/dispatch/requests' },
       { name: 'SKU', href: '/sku' },
     ];
 

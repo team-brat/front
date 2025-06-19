@@ -25,6 +25,12 @@ import BinRecommender from './Binning/BinRecommender';
 import InventoryStatus from './Binning/InventoryStatus';
 import InventoryChecking from './Binning/InventoryChecking';
 
+import DispatchTemplate from './Dispatch/DispatchTemplate';
+import DispatchRequests from './Dispatch/DispatchRequests';
+import Picking from './Dispatch/Picking';
+import Packing from './Dispatch/Packing';
+import TrackDelivery from './Dispatch/TrackDelivery';
+
 import ModalWarning from './components/Modals/Modal-Warning'; // Import the ModalWarning component
 
 // Create a context for user authentication
@@ -77,6 +83,13 @@ function App() {
             <Route path="inspection" element={<RequireAuth><Inspection/></RequireAuth>} />
             <Route path="rfid-scan" element={<RequireAuth><div><RFIDScan /></div></RequireAuth>} />
             <Route path="grn" element={<RequireAuth><GRN /></RequireAuth>} />
+          </Route>
+          <Route path="/dispatch" element={<RequireAuth><DispatchTemplate /></RequireAuth>}>
+            <Route index element={<Navigate to="/dispatch/requests" replace />} />
+            <Route path="requests" element={<RequireAuth><DispatchRequests /></RequireAuth>} />
+            <Route path="picking" element={<RequireAuth><Picking /></RequireAuth>} />
+            <Route path="packing" element={<RequireAuth><Packing /></RequireAuth>} />
+            <Route path="track" element={<RequireAuth><TrackDelivery /></RequireAuth>} />
           </Route>
         </Routes>
       </Router>
