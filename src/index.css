@@ -5,6 +5,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* 토스페이스 클래스 스타일 */
+.tossface {
+  font-family: Tossface;
+}
+
 /* 기본 스타일 */
 body {
   margin: 0;
