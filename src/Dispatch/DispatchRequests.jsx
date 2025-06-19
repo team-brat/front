@@ -71,7 +71,7 @@ const DispatchRequests = () => {
         <>
           {/* ✅ 정상 주문 리스트 */}
           <div>
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">✅ Valid Orders</h2>
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">Valid Orders</h2>
             <div className="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
               <table className="min-w-full text-sm text-left">
                 <thead className="bg-gray-50 text-gray-700">
@@ -107,7 +107,7 @@ const DispatchRequests = () => {
 
           {/* ⚠️ 할당 부족 주문 */}
           <div>
-            <h2 className="text-xl font-semibold text-red-600 mt-12 mb-4">⚠️ Allocation Shortage Orders</h2>
+            <h2 className="text-xl font-semibold text-red-600 mt-12 mb-4"> Allocation Shortage Orders</h2>
             <div className="overflow-x-auto rounded-xl border border-red-200 shadow">
               <table className="min-w-full text-sm text-left">
                 <thead className="bg-red-100 text-red-800">
