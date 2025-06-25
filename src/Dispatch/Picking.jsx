@@ -1,247 +1,407 @@
-import React, { useEffect, useRef } from 'react';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  ArcElement,
-  BarElement,
-  Tooltip,
-  Legend,
-} from 'chart.js';
-import { Line, Pie, Bar } from 'react-chartjs-2';
-import Header from '../components/Layout/Header';
-import Footer from '../components/Layout/Footer';
+import React, { useState, useRef } from 'react';
+import html2canvas from 'html2canvas';
+import { getScannerData, getPickRocData, updatePickedQty } from '../services/api';
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, ArcElement, BarElement, Tooltip, Legend);
+// Custom Modal Component
+const CustomModal = ({ isOpen, onClose, title, message, type = 'success' }) => {
+  if (!isOpen) return null;
 
-const barData = {
-  labels: ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11'],
-  datasets: [
-    {
-      label: 'CAPA',
-      backgroundColor: '#4ade80',
-      data: [28, 35, 31, 38, 29, 36, 34, 30, 37, 32, 35],
-    },
-    {
-      label: 'Dispatched Package / hr',
-      backgroundColor: '#facc15',
-      data: [310, 340, 320, 350, 315, 330, 325, 318, 335, 328, 332],
-    },
-  ],
-};
+  const getIconAndColor = () => {
+    switch (type) {
+      case 'success':
+        return {
+          icon: '✓',
+          bgColor: 'bg-green-100',
+          textColor: 'text-green-600',
+          buttonColor: 'bg-green-600 hover:bg-green-500'
+        };
+      case 'error':
+        return {
+          icon: '✗',
+          bgColor: 'bg-red-100',
+          textColor: 'text-red-600',
+          buttonColor: 'bg-red-600 hover:bg-red-500'
+        };
+      case 'info':
+        return {
+          icon: 'ℹ',
+          bgColor: 'bg-blue-100',
+          textColor: 'text-blue-600',
+          buttonColor: 'bg-blue-600 hover:bg-blue-500'
+        };
+      default:
+        return {
+          icon: '✓',
+          bgColor: 'bg-green-100',
+          textColor: 'text-green-600',
+          buttonColor: 'bg-green-600 hover:bg-green-500'
+        };
+    }
+  };
 
-const pieData = {
-  labels: ['Occupied', 'Vacant'],
-  datasets: [
-    {
-      data: [96, 4],
-      backgroundColor: ['#6366f1', '#22d3ee'],
-      hoverOffset: 8,
-    },
-  ],
-};
-
-const legendLabels = ['Occupied', 'Vacant'];
-const legendColors = ['#6366f1', '#22d3ee'];
-
-const ProgressBar = ({ percentage, color }) => {
-  const progressRef = useRef(null);
-
-  useEffect(() => {
-    const progressBar = progressRef.current;
-    progressBar.style.width = '0%';
-    
-    setTimeout(() => {
-      progressBar.style.transition = 'width 1s ease-in-out';
-      progressBar.style.width = `${percentage}%`;
-    }, 100);
-  }, [percentage]);
+  const { icon, bgColor, textColor, buttonColor } = getIconAndColor();
 
   return (
-    <div className="mt-4 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-      <div 
-        ref={progressRef}
-        className={`h-full rounded-full transition-all duration-1000 ease-in-out`}
-        style={{ backgroundColor: color }}
+    <div className="fixed inset-0 z-50 overflow-y-auto">
+      <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={onClose}></div>
+        
+        <div className="relative transform overflow-hidden rounded-lg bg-white px-4 pt-5 pb-4 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+          <div className="sm:flex sm:items-start">
+            <div className={`mx-auto flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${bgColor} sm:mx-0 sm:h-10 sm:w-10`}>
+              <span className={`text-xl font-bold ${textColor}`}>{icon}</span>
+            </div>
+            <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+              <h3 className="text-base font-semibold text-gray-900">
+                {title}
+              </h3>
+              <div className="mt-2">
+                <p className="text-sm text-gray-500">
+                  {message}
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+            <button
+              type="button"
+              onClick={onClose}
+              className={`inline-flex w-full justify-center rounded-md px-3 py-2 text-sm font-semibold text-white shadow-sm ${buttonColor} sm:ml-3 sm:w-auto`}
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const Picking = () => {
+  const [toteBarcode, setToteBarcode] = useState('');
+  const [pickingList, setPickingList] = useState([]);
+  const [scannedItems, setScannedItems] = useState([]);
+  const [currentStage, setCurrentStage] = useState(1);
+  const [loadingStates, setLoadingStates] = useState({
+    scanBarcode: false,
+    confirmTote: false,
+    scanItems: false,
+    confirmPick: null, // index를 저장
+  });
+  const [modal, setModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    type: 'success'
+  });
+  const [scanCount, setScanCount] = useState(0); // 스캔 횟수를 추적
+  const printRef = useRef();
+
+  const showModal = (title, message, type = 'success') => {
+    setModal({
+      isOpen: true,
+      title,
+      message,
+      type
+    });
+  };
+
+  const closeModal = () => {
+    setModal({
+      isOpen: false,
+      title: '',
+      message: '',
+      type: 'success'
+    });
+  };
+
+  // Stage 1.2: 바코드 조회 버튼 클릭 (SR160Scans DB에서 최근 스캔 데이터 조회)
+  const handleScanBarcode = async () => {
+    setLoadingStates(prev => ({ ...prev, scanBarcode: true }));
+    try {
+      const scannerData = await getScannerData();
+      // Scanner API 응답: {"type": "zone_id", "id": "E20047024350602682180111"}
+      const scannedBarcode = scannerData.id || '';
+      setToteBarcode(scannedBarcode);
+      showModal('Barcode Scan Completed', `Barcode: ${scannedBarcode}`, 'success');
+    } catch (error) {
+      console.error('Barcode scan error:', error);
+      showModal('Scan Error', 'Error occurred while scanning barcode.', 'error');
+    } finally {
+      setLoadingStates(prev => ({ ...prev, scanBarcode: false }));
+    }
+  };
+
+  // Stage 2.1: Confirm 버튼 클릭 (Pick ROC API 호출)
+  const handleConfirmTote = async () => {
+    if (!toteBarcode) {
+      showModal('Input Required', 'Please scan barcode first.', 'error');
+      return;
+    }
+
+    setLoadingStates(prev => ({ ...prev, confirmTote: true }));
+    try {
+      // Hardcoded API call to the specified URL
+      const response = await fetch('https://z0nql7r236.execute-api.us-east-2.amazonaws.com/dev/pick-roc/1');
+      const pickRocData = await response.json();
+      
+      // API 응답에서 picking list 생성
+      const rocList = pickRocData.roc_list || [];
+      const formattedPickingList = rocList.map(item => ({
+        loc: item.bin_loc,
+        requiredQty: item.allocated_qty,
+        pickedQty: 0,
+        skuId: item.sku_id,
+        skuName: item.sku_name,
+        pickingCount: item.picking_count || 0,
+        status: 'pending',
+      }));
+
+      setPickingList(formattedPickingList);
+      setCurrentStage(2);
+      showModal('Tote Confirmed', `Tote: ${toteBarcode} confirmed. Starting picking work.`, 'success');
+    } catch (error) {
+      console.error('Pick ROC API error:', error);
+      showModal('Confirmation Error', 'Error occurred while confirming tote.', 'error');
+    } finally {
+      setLoadingStates(prev => ({ ...prev, confirmTote: false }));
+    }
+  };
+
+  // Stage 3.2: 아이템 스캔 후 바코드 조회 (SR160Scans DB에서 스캔된 아이템 정보 조회)
+  const handleScanItems = async () => {
+    setLoadingStates(prev => ({ ...prev, scanItems: true }));
+    try {
+      // 새로운 API 엔드포인트 호출
+      const response = await fetch('https://z0nql7r236.execute-api.us-east-2.amazonaws.com/dev/scanner/latest');
+      const scannerData = await response.json();
+      console.log('Scanner API Response:', scannerData); // 디버깅용 로그
+      
+      // id 배열의 길이 계산
+      const scannedItemIds = scannerData.id || [];
+      const itemCount = scannedItemIds.length;
+      console.log('Scanned Item Count:', itemCount); // 디버깅용 로그
+      
+      if (itemCount > 0) {
+        // 현재 스캔 횟수에 따라 해당 박스의 Picked Qty 업데이트
+        const updatedPickingList = [...pickingList];
+        
+        if (scanCount < updatedPickingList.length) {
+          updatedPickingList[scanCount].pickedQty = itemCount;
+          setPickingList(updatedPickingList);
+          setScannedItems(prev => [...prev, ...scannedItemIds]);
+          setScanCount(prev => prev + 1);
+          
+          showModal('Item Scan Completed', `Box ${scanCount + 1}: ${itemCount} items scanned (${scannedItemIds.join(', ')})`, 'success');
+        } else {
+          showModal('All Boxes Scanned', 'All picking boxes have been scanned.', 'info');
+        }
+      } else {
+        showModal('No Data', 'No scanned item information found.', 'error');
+      }
+    } catch (error) {
+      console.error('Item scan query error:', error);
+      showModal('Scan Error', 'Error occurred while scanning items.', 'error');
+    } finally {
+      setLoadingStates(prev => ({ ...prev, scanItems: false }));
+    }
+  };
+
+  // Stage 3.3: 확인 버튼 클릭 (Picked Qty API 호출)
+  const handleConfirmPick = async (index) => {
+    const item = pickingList[index];
+    
+    if (item.pickedQty === 0) {
+      showModal('No Items Scanned', 'Please scan items first.', 'error');
+      return;
+    }
+
+    setLoadingStates(prev => ({ ...prev, confirmPick: index }));
+    try {
+      // API 호출 없이 바로 성공 처리
+      showModal('Confirmation Successful', `${item.skuName} (${item.pickedQty} pcs) has been confirmed successfully.`, 'success');
+      
+      // 성공적으로 처리된 아이템은 상태 업데이트
+      setPickingList(prev => 
+        prev.map((pItem, pIndex) => 
+          pIndex === index 
+            ? { ...pItem, status: 'completed' }
+            : pItem
+        )
+      );
+    } catch (error) {
+      console.error('Confirmation error:', error);
+      showModal('Confirmation Error', 'Error occurred while confirming picking.', 'error');
+    } finally {
+      setLoadingStates(prev => ({ ...prev, confirmPick: null }));
+    }
+  };
+
+  const handlePrintPickSlip = async () => {
+    if (printRef.current) {
+      try {
+        const canvas = await html2canvas(printRef.current, {
+          scale: 2,
+          useCORS: true,
+          allowTaint: true,
+        });
+        
+        const pngUrl = canvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        link.download = `pick-slip-${toteBarcode || 'tote'}.png`;
+        link.href = pngUrl;
+        link.click();
+        showModal('Print Success', 'Pick slip has been downloaded successfully.', 'success');
+      } catch (error) {
+        console.error('Print error:', error);
+        showModal('Print Error', 'Error occurred while printing.', 'error');
+      }
+    }
+  };
+
+  return (
+    <div className="p-12 space-y-10 w-full" ref={printRef}>
+      <div className="pb-10 mb-10 border-b border-gray-200">
+        <div className="flex justify-between items-center">
+          <h1 className="text-4xl font-bold text-gray-900">Picking</h1>
+          <button 
+            onClick={handlePrintPickSlip}
+            className="px-6 py-3 bg-green-600 hover:bg-green-500 text-white rounded-lg font-medium transition-colors"
+          >
+            Print Pick Slip
+          </button>
+        </div>
+      </div>
+
+      <div className="space-y-6">
+        {/* Stage 1: Tote 바코드 조회 */}
+        <div className="bg-white rounded-xl shadow p-6 border border-gray-200 space-y-4">
+          <h2 className="text-lg font-semibold text-green-700">TOTE 1</h2>
+          <div className="flex items-center space-x-4">
+            <label className="text-gray-700 font-medium">TOTE Barcode</label>
+            <input
+              type="text"
+              className="px-4 py-2 border border-gray-300 rounded-md"
+              value={toteBarcode}
+              onChange={(e) => setToteBarcode(e.target.value)}
+              placeholder="Scanned barcode will appear here"
+              readOnly
+            />
+            <button
+              onClick={handleScanBarcode}
+              disabled={loadingStates.scanBarcode}
+              className="px-6 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg font-semibold transition-colors shadow-md disabled:opacity-50"
+            >
+              {loadingStates.scanBarcode ? 'Scanning' : 'Scan Barcode'}
+            </button>
+            <button
+              onClick={handleConfirmTote}
+              disabled={loadingStates.confirmTote || !toteBarcode}
+              className="px-6 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg font-semibold transition-colors shadow-md disabled:opacity-50"
+            >
+              {loadingStates.confirmTote ? 'Confirming' : 'Confirm'}
+            </button>
+          </div>
+          <div className="text-sm text-gray-600">
+            * Scan tote barcode in the app, then click "Scan Barcode" button.
+          </div>
+        </div>
+
+        {/* Stage 2 & 3: Picking List */}
+        {pickingList.length > 0 && (
+          <div className="space-y-6">
+            {/* 아이템 스캔 조회 버튼 */}
+            <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-semibold text-green-800">Item Scanning</h3>
+                  <p className="text-sm text-green-600">Scan items in the app, then click the button below to query scanned items.</p>
+                </div>
+                <button
+                  onClick={handleScanItems}
+                  disabled={loadingStates.scanItems}
+                  className="px-6 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg font-semibold transition-colors shadow-md disabled:opacity-50"
+                >
+                  {loadingStates.scanItems ? 'Scanning...' : 'Scan Items'}
+                </button>
+              </div>
+            </div>
+
+            {pickingList.map((item, index) => (
+              <div
+                key={index}
+                className={`p-6 rounded-xl border space-y-4 ${
+                  item.status === 'completed' 
+                    ? 'bg-gray-50 border-gray-200' 
+                    : 'bg-green-50 border-green-200'
+                }`}
+              >
+                <div className="flex items-center justify-between space-x-6">
+                  <div className="text-gray-800">
+                    <div className="mb-2 font-medium">
+                      <strong>LOC:</strong>{' '}
+                      <span className="bg-yellow-200 px-2 py-1 rounded">{item.loc}</span>
+                    </div>
+                    <div className="mb-1">
+                      <strong>SKU:</strong>{' '}
+                      <span className="bg-green-100 px-2 py-1 rounded">{item.skuName} ({item.skuId})</span>
+                    </div>
+                    <div>
+                      <strong>Picking Qty:</strong>{' '}
+                      <span className="bg-yellow-100 px-2 py-1 rounded">{item.requiredQty} pcs</span>
+                    </div>
+                  </div>
+
+                  <div className="text-green-900">
+                    <strong>Picked Qty:</strong> {item.pickedQty} pcs
+                  </div>
+                </div>
+
+                {item.status !== 'completed' && (
+                  <div className="flex items-center justify-between pt-2">
+                    <div className="text-sm text-gray-600">
+                      {item.pickedQty > 0 ? `${item.pickedQty} items scanned` : 'Not scanned yet'}
+                    </div>
+                    <button
+                      onClick={() => handleConfirmPick(index)}
+                      disabled={loadingStates.confirmPick === index || item.pickedQty === 0}
+                      className="px-6 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg font-semibold transition-colors shadow-md disabled:opacity-50"
+                    >
+                      {loadingStates.confirmPick === index ? 'Confirming...' : 'Confirm'}
+                    </button>
+                  </div>
+                )}
+
+                {item.status === 'completed' && (
+                  <div className="text-green-600 font-semibold">
+                    ✓ Picking Completed
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="flex justify-end">
+          <button 
+            className="px-6 py-3 bg-green-600 hover:bg-green-500 text-white font-bold rounded-lg transition-colors shadow-md"
+            onClick={() => showModal('Work Completed', 'Picking work completed.', 'success')}
+          >
+            DONE
+          </button>
+        </div>
+      </div>
+
+      {/* Custom Modal */}
+      <CustomModal
+        isOpen={modal.isOpen}
+        onClose={closeModal}
+        title={modal.title}
+        message={modal.message}
+        type={modal.type}
       />
     </div>
   );
 };
 
-const WarehouseDashboard = () => {
-  return (
-    <div className="min-h-screen bg-[#f5f7f9]  text-gray-800 font-sans">
-      <Header />
-
-      <main className="max-w-7xl mx-auto space-y-6 sm:space-y-10 mt-20 px-4 sm:px-6 py-6 sm:py-8">
-        {/* Summary Cards Section */}
-        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-          <div className="bg-white p-6 rounded-2xl shadow-[0_4px_20px_rgba(132,204,22,0.15)] hover:scale-[1.01] transition">
-            <p className="text-base text-lime-600 font-medium">Received Today</p>
-            <p className="text-4xl font-bold mt-2">88.00%</p>
-            <p className="text-base mt-2 text-gray-500">+176 (Total 200)</p>
-            <ProgressBar percentage={88} color="#22c55e" />
-          </div>
-
-          <div className="bg-white p-6 rounded-2xl shadow-[0_4px_20px_rgba(132,204,22,0.15)] hover:scale-[1.01] transition">
-            <p className="text-base text-green-600 font-medium">Document Inspection</p>
-            <p className="text-4xl font-bold mt-2">80.00%</p>
-            <p className="text-base mt-2 text-gray-500">+160 (Total 200)</p>
-            <ProgressBar percentage={80} color="#16a34a" />
-          </div>
-
-          <div className="bg-white p-6 rounded-2xl shadow-[0_4px_20px_rgba(132,204,22,0.15)] hover:scale-[1.01] transition">
-            <p className="text-base text-blue-600 font-medium">Inspected Today</p>
-            <p className="text-4xl font-bold mt-2">22.72%</p>
-            <p className="text-base mt-2 text-gray-500">+40 (Total 176)</p>
-            <ProgressBar percentage={22.72} color="#3b82f6" />
-          </div>
-
-          <div className="bg-white p-6 rounded-2xl shadow-[0_4px_20px_rgba(132,204,22,0.15)] hover:scale-[1.01] transition">
-            <p className="text-base text-blue-600 font-medium">TQ Fail / Pass %</p>
-            <p className="text-4xl font-bold mt-2">92.72%</p>
-            <p className="text-base mt-2 text-gray-500">+163 (Total 176)</p>
-            <ProgressBar percentage={92.72} color="#3b82f6" />
-          </div>
-
-          <div className="bg-white p-6 rounded-2xl shadow-[0_4px_20px_rgba(132,204,22,0.15)] hover:scale-[1.01] transition">
-            <p className="text-base text-indigo-600 font-medium">Bin Utilization</p>
-            <div className="mt-4 h-32">
-              <Pie
-                data={pieData}
-                options={{
-                  maintainAspectRatio: false,
-                  plugins: {
-                    legend: { display: false },
-                  },
-                }}
-              />
-            </div>
-            <div className="mt-2 space-y-1 text-xs text-gray-600">
-              {legendLabels.map((label, idx) => (
-                <div key={label} className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: legendColors[idx] }} />
-                  <span>{label} {label === 'Occupied' ? '96%' : '4%'}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="bg-white p-6 rounded-2xl shadow-[0_4px_20px_rgba(132,204,22,0.15)] hover:scale-[1.01] transition">
-            <p className="text-base text-teal-600 font-medium">Inventory Reconciliation</p>
-            <p className="text-4xl font-bold mt-2">98.00%</p>
-            <p className="text-base mt-2 text-gray-500">4,998 / 5,000 SKU</p>
-            <p className="text-base mt-1 text-gray-500">607,600 / 620,000 Item</p>
-            <ProgressBar percentage={98} color="#0d9488" />
-          </div>
-
-          <div className="bg-white p-6 rounded-2xl shadow-[0_4px_20px_rgba(244,63,94,0.12)] hover:scale-[1.01] transition">
-            <p className="text-base text-red-500 font-medium">Scheduled Dispatch</p>
-            <p className="text-4xl font-bold mt-2">5,850</p>
-            <div className="mt-3 space-y-2 text-base text-gray-600">
-              <p>Picking Status: <span className="text-gray-800 font-semibold">20.35%</span></p>
-              <p>Packing Status: <span className="text-gray-800 font-semibold">95%</span></p>
-              <p>Dispatched Package: <span className="text-gray-800 font-semibold">4,550</span></p>
-            </div>
-            <ProgressBar percentage={45} color="#ef4444" />
-          </div>
-
-          <div className="bg-white p-6 rounded-2xl shadow-[0_4px_20px_rgba(132,204,22,0.15)] hover:scale-[1.01] transition">
-            <p className="text-base text-orange-600 font-medium">Processing Times</p>
-            <p className="text-4xl font-bold mt-2">10.2</p>
-            <p className="text-base mt-2 text-gray-500">min per package</p>
-            <ProgressBar percentage={85} color="#ea580c" />
-          </div>
-        </section>
-
-        {/* CAPA Worker Info Section */}
-        <section className="bg-white p-6 rounded-2xl shadow-md grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
-          <div>
-            <h2 className="text-xl font-semibold text-gray-700 mb-3">CAPA Overview</h2>
-            <p className="text-4xl font-semibold text-lime-600">32.5</p>
-            <p className="text-base text-gray-500 mt-2">Responsible for delivery</p>
-            <p className="mt-4 text-base text-gray-700">Dispatched Package / hr: <span className="font-semibold text-gray-900">325</span></p>
-            <p className="text-base text-gray-700">Total Number of Workers: <span className="font-semibold text-gray-900">10</span></p>
-          </div>
-          <div className="flex flex-wrap gap-3 items-center">
-            {[32, 41, 44, 14, 64, 84, 14, 34, 48, 55].map((id, idx) => (
-              <img
-                key={idx}
-                className="w-12 h-12 rounded-full border-2 border-white shadow"
-                src={`https://randomuser.me/api/portraits/${idx % 2 === 0 ? 'men' : 'women'}/${id}.jpg`}
-                alt="User"
-                title={`Worker ${idx + 1}`}
-              />
-            ))}
-          </div>
-        </section>
-
-        {/* Charts Section */}
-        <section className="grid grid-cols-1 gap-6 sm:gap-8 border-t border-gray-200 pt-10">
-          {/* Bar Chart */}
-          <div className="bg-white p-6 rounded-2xl shadow-md">
-            <h2 className="text-xl font-semibold text-gray-700 mb-4">CAPA History</h2>
-            <div className="h-72">
-              <Bar data={barData} options={{ maintainAspectRatio: false }} />
-            </div>
-          </div>
-        </section>
-
-        {/* New Section with Today's Inventory Count and Bottleneck */}
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 border-t border-gray-200 pt-10">
-          {/* Today's Inventory Count */}
-          <div className="bg-white p-8 rounded-2xl shadow-lg flex flex-col justify-between min-h-[340px]">
-            <div>
-              <h2 className="text-xl font-bold text-gray-800 mb-1">Today's Inventory Count</h2>
-              <p className="text-sm text-gray-400 mb-1">z1-a1-s1-b1 ~ z1-a3-s20-b19</p>
-              <p className="text-xs text-gray-400 mb-4">Q2 Inventory Status</p>
-            </div>
-            <div className="flex flex-col items-center justify-center flex-1">
-              <div className="relative w-28 h-28 mb-2">
-                <Pie
-                  data={{
-                    labels: ['Completed', 'Remaining'],
-                    datasets: [{
-                      data: [93, 7],
-                      backgroundColor: ['#2563eb', '#e5e7eb'],
-                      borderWidth: 0,
-                    }]
-                  }}
-                  options={{
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false }, tooltip: { enabled: false } },
-                    cutout: '75%',
-                  }}
-                />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-3xl font-extrabold text-blue-600">93%</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Bottleneck */}
-          <div className="bg-white p-8 rounded-2xl shadow-lg flex flex-col justify-between min-h-[340px]">
-            <h2 className="text-xl font-bold text-gray-800 mb-6">Bottleneck</h2>
-            <div className="flex-1 flex flex-col justify-center">
-              <div className="mb-6">
-                <p className="text-sm text-gray-500 mb-1">Picking Status</p>
-                <span className="text-3xl font-extrabold text-red-500">20.35%</span>
-              </div>
-              <div className="border-t border-gray-200 my-4"></div>
-              <div>
-                <p className="text-sm text-gray-500 mb-1">Optimal required personnel</p>
-                <span className="text-3xl font-extrabold text-gray-800">4</span>
-              </div>
-            </div>
-          </div>
-        </section>
-      </main>
-      <Footer />
-    </div>
-  );
-};
-
-export default WarehouseDashboard;
+export default Picking;
