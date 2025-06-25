@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -71,6 +71,33 @@ const ProgressBar = ({ percentage, color }) => {
 };
 
 const WarehouseDashboard = () => {
+  const [inventoryStats, setInventoryStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchInventoryStats = async () => {
+      try {
+        const response = await fetch('https://z0nql7r236.execute-api.us-east-2.amazonaws.com/dev/inventory/stats');
+        const data = await response.json();
+        setInventoryStats(data);
+      } catch (error) {
+        console.error('Error fetching inventory stats:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchInventoryStats();
+  }, []);
+
+  // Calculate percentage for progress bar
+  const calculatePercentage = () => {
+    if (!inventoryStats) return 98; // fallback value
+    const { total_max_capacity, total_remaining_qty } = inventoryStats;
+    if (total_max_capacity === 0) return 0;
+    return Math.round(((total_max_capacity - total_remaining_qty) / total_max_capacity) * 100);
+  };
+
   return (
     <div className="min-h-screen bg-[#f5f7f9]  text-gray-800 font-sans">
       <Header />
@@ -131,10 +158,16 @@ const WarehouseDashboard = () => {
 
           <div className="bg-white p-6 rounded-2xl shadow-[0_4px_20px_rgba(132,204,22,0.15)] hover:scale-[1.01] transition">
             <p className="text-base text-teal-600 font-medium">Inventory Reconciliation</p>
-            <p className="text-4xl font-bold mt-2">98.00%</p>
-            <p className="text-base mt-2 text-gray-500">4,998 / 5,000 SKU</p>
-            <p className="text-base mt-1 text-gray-500">607,600 / 620,000 Item</p>
-            <ProgressBar percentage={98} color="#0d9488" />
+            <p className="text-4xl font-bold mt-2">
+              {loading ? '...' : `${calculatePercentage()}.00%`}
+            </p>
+            <p className="text-base mt-2 text-gray-500">
+              {loading ? 'Loading...' : `${inventoryStats?.unique_sku_count || 0} SKU`}
+            </p>
+            <p className="text-base mt-1 text-gray-500">
+              {loading ? 'Loading...' : `${inventoryStats?.total_max_capacity || 0} Item`}
+            </p>
+            <ProgressBar percentage={calculatePercentage()} color="#0d9488" />
           </div>
 
           <div className="bg-white p-6 rounded-2xl shadow-[0_4px_20px_rgba(244,63,94,0.12)] hover:scale-[1.01] transition">
