@@ -47,9 +47,6 @@ const DispatchRequests = () => {
       <td className="px-4 py-3">{item.serial_or_barcode}</td>
       <td className="px-4 py-3">{item.quantity}</td>
       <td className="px-4 py-3">{item.allocated_qty}</td>
-      <td className="px-4 py-3">{item.picking || '-'}</td>
-      <td className="px-4 py-3">{item.packing || '-'}</td>
-      <td className="px-4 py-3">{item.box_number || '-'}</td>
       <td className="px-4 py-3">{item.shipping_label_number || '-'}</td>
       <td className="px-4 py-3">{item.status}</td>
       <td className="px-4 py-3">{item.destination_code}</td>
@@ -82,9 +79,6 @@ const DispatchRequests = () => {
                     <th className="px-4 py-3">Barcode</th>
                     <th className="px-4 py-3">Qty</th>
                     <th className="px-4 py-3">Allocated Qty</th>
-                    <th className="px-4 py-3">Picking</th>
-                    <th className="px-4 py-3">Packing</th>
-                    <th className="px-4 py-3">Box #</th>
                     <th className="px-4 py-3">Shipping Label</th>
                     <th className="px-4 py-3">Status</th>
                     <th className="px-4 py-3">Dest Code</th>
@@ -95,7 +89,7 @@ const DispatchRequests = () => {
                   {orders.map((order) => renderRow(order))}
                   {orders.length === 0 && (
                     <tr>
-                      <td colSpan="13" className="text-center text-gray-500 py-6">
+                      <td colSpan="10" className="text-center text-gray-500 py-6">
                         No valid dispatch orders found.
                       </td>
                     </tr>
@@ -118,9 +112,6 @@ const DispatchRequests = () => {
                     <th className="px-4 py-3">Barcode</th>
                     <th className="px-4 py-3">Qty</th>
                     <th className="px-4 py-3">Allocated Qty</th>
-                    <th className="px-4 py-3">Picking</th>
-                    <th className="px-4 py-3">Packing</th>
-                    <th className="px-4 py-3">Box #</th>
                     <th className="px-4 py-3">Shipping Label</th>
                     <th className="px-4 py-3">Status</th>
                     <th className="px-4 py-3">Dest Code</th>
