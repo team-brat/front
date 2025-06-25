@@ -1,6 +1,26 @@
 import React, { useState, useRef } from 'react';
 import html2canvas from 'html2canvas';
-import { getScannerData, getPickRocData, updatePickedQty } from '../services/api';
+
+// API 함수들 (예시)
+const getScannerData = async () => {
+  // 실제 API 호출 구현
+  const response = await fetch('https://z0nql7r236.execute-api.us-east-2.amazonaws.com/dev/scanner/latest');
+  return await response.json();
+};
+
+const updatePickedQty = async (itemIds, pickedQty) => {
+  const response = await fetch('https://z0nql7r236.execute-api.us-east-2.amazonaws.com/dev/picked-qty', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      id: itemIds, // 배열로 전달
+      picked_qty: pickedQty
+    })
+  });
+  return await response.json();
+};
 
 // Custom Modal Component
 const CustomModal = ({ isOpen, onClose, title, message, type = 'success' }) => {
@@ -81,12 +101,13 @@ const Picking = () => {
   const [toteBarcode, setToteBarcode] = useState('');
   const [pickingList, setPickingList] = useState([]);
   const [scannedItems, setScannedItems] = useState([]);
+  const [itemToScannedIds, setItemToScannedIds] = useState({}); // SKU와 스캔된 item ID들의 매핑
   const [currentStage, setCurrentStage] = useState(1);
   const [loadingStates, setLoadingStates] = useState({
     scanBarcode: false,
     confirmTote: false,
     scanItems: false,
-    confirmPick: null, // index를 저장
+    confirmPick: null,
   });
   const [modal, setModal] = useState({
     isOpen: false,
@@ -114,13 +135,12 @@ const Picking = () => {
     });
   };
 
-  // Stage 1.2: 바코드 조회 버튼 클릭 (SR160Scans DB에서 최근 스캔 데이터 조회)
+  // Stage 1.2: 바코드 조회 버튼 클릭
   const handleScanBarcode = async () => {
     setLoadingStates(prev => ({ ...prev, scanBarcode: true }));
     try {
       const scannerData = await getScannerData();
-      // Scanner API 응답: {"type": "zone_id", "id": "E20047024350602682180111"}
-      const scannedBarcode = scannerData.id || '';
+      const scannedBarcode = Array.isArray(scannerData) ? scannerData[0] : scannerData.id || scannerData;
       setToteBarcode(scannedBarcode);
       showModal('Barcode Scan Completed', `Barcode: ${scannedBarcode}`, 'success');
     } catch (error) {
@@ -131,7 +151,7 @@ const Picking = () => {
     }
   };
 
-  // Stage 2.1: Confirm 버튼 클릭 (Pick ROC API 호출)
+  // Stage 2.1: Confirm 버튼 클릭
   const handleConfirmTote = async () => {
     if (!toteBarcode) {
       showModal('Input Required', 'Please scan barcode first.', 'error');
@@ -140,11 +160,9 @@ const Picking = () => {
 
     setLoadingStates(prev => ({ ...prev, confirmTote: true }));
     try {
-      // Hardcoded API call to the specified URL
       const response = await fetch('https://z0nql7r236.execute-api.us-east-2.amazonaws.com/dev/pick-roc/1');
       const pickRocData = await response.json();
       
-      // API 응답에서 picking list 생성
       const rocList = pickRocData.roc_list || [];
       const formattedPickingList = rocList.map(item => ({
         loc: item.bin_loc,
@@ -167,43 +185,54 @@ const Picking = () => {
     }
   };
 
-  // Stage 3.2: 아이템 스캔 후 바코드 조회 (SR160Scans DB에서 스캔된 아이템 정보 조회)
+  // Stage 3.2: 아이템 스캔 후 바코드 조회
   const handleScanItems = async () => {
     setLoadingStates(prev => ({ ...prev, scanItems: true }));
     try {
       const scannerData = await getScannerData();
-      console.log('Scanner API Response (SR160Scans DB):', scannerData); // 디버깅용 로그
+      console.log('Scanner API Response:', scannerData);
       
-      // 새로운 API 응답 형식: {"type": "zone_id", "id": ["E20047024350602682180111"]}
-      // 또는 멀티 스캔: {"type": "zone_id", "id": ["E20047024350602682180111", "E20047024350602682180112"]}
-      const scannedItemIds = scannerData.id || [];
-      console.log('Extracted Item IDs:', scannedItemIds); // 디버깅용 로그
+      // 스캔된 item ID들 추출
+      const scannedItemIds = Array.isArray(scannerData) ? scannerData : (scannerData.id || []);
+      console.log('Extracted Item IDs:', scannedItemIds);
       
       if (scannedItemIds.length > 0) {
-        let processedCount = 0;
-        const updatedPickingList = [...pickingList];
+        // 스캔된 item ID들을 저장
+        setScannedItems(prev => [...prev, ...scannedItemIds]);
         
-        // 각 스캔된 아이템 ID에 대해 처리
-        scannedItemIds.forEach(scannedItemId => {
-          const itemIndex = updatedPickingList.findIndex(item => 
-            item.skuId === scannedItemId
+        // 각 SKU별로 스캔된 item ID들을 매핑
+        const updatedMapping = { ...itemToScannedIds };
+        const updatedPickingList = [...pickingList];
+        let processedCount = 0;
+        
+        // 실제로는 여기서 item ID와 SKU의 매핑을 API로 조회해야 할 수 있음
+        // 지금은 간단히 스캔된 아이템들을 첫 번째 pending 아이템에 할당
+        scannedItemIds.forEach(itemId => {
+          const pendingIndex = updatedPickingList.findIndex(item => 
+            item.status === 'pending' && item.pickedQty < item.requiredQty
           );
           
-          if (itemIndex !== -1) {
-            updatedPickingList[itemIndex].pickedQty += 1;
+          if (pendingIndex !== -1) {
+            const skuId = updatedPickingList[pendingIndex].skuId;
+            if (!updatedMapping[skuId]) {
+              updatedMapping[skuId] = [];
+            }
+            updatedMapping[skuId].push(itemId);
+            updatedPickingList[pendingIndex].pickedQty += 1;
             processedCount++;
           }
         });
         
+        setItemToScannedIds(updatedMapping);
+        setPickingList(updatedPickingList);
+        
         if (processedCount > 0) {
-          setPickingList(updatedPickingList);
-          setScannedItems(prev => [...prev, ...scannedItemIds]);
           showModal('Item Scan Completed', `${processedCount} items scanned: ${scannedItemIds.join(', ')}`, 'success');
         } else {
           showModal('Item Not Found', `Scanned items ${scannedItemIds.join(', ')} are not in the picking list.`, 'error');
         }
       } else {
-        showModal('No Data', 'No scanned item information found in SR160Scans DB.', 'error');
+        showModal('No Data', 'No scanned item information found.', 'error');
       }
     } catch (error) {
       console.error('Item scan query error:', error);
@@ -222,13 +251,21 @@ const Picking = () => {
       return;
     }
 
+    // 해당 SKU에 매핑된 item ID들 가져오기
+    const scannedItemIds = itemToScannedIds[item.skuId] || [];
+    
+    if (scannedItemIds.length === 0) {
+      showModal('No Item IDs', 'No scanned item IDs found for this SKU.', 'error');
+      return;
+    }
+
     setLoadingStates(prev => ({ ...prev, confirmPick: index }));
     try {
-      const result = await updatePickedQty(item.skuId, item.pickedQty);
+      // 새로운 API 형식으로 호출: item ID 배열과 picked quantity
+      const result = await updatePickedQty(scannedItemIds, item.pickedQty);
       
       if (result === true) {
         showModal('Picking Completed', `${item.skuName} (${item.pickedQty} pcs) picking completed!`, 'success');
-        // 성공적으로 처리된 아이템은 상태 업데이트
         setPickingList(prev => 
           prev.map((pItem, pIndex) => 
             pIndex === index 
@@ -360,6 +397,19 @@ const Picking = () => {
                       <strong>Picking Qty:</strong>{' '}
                       <span className="bg-yellow-100 px-2 py-1 rounded">{item.requiredQty} pcs</span>
                     </div>
+                    {/* 스캔된 Item ID들 표시 */}
+                    {itemToScannedIds[item.skuId] && itemToScannedIds[item.skuId].length > 0 && (
+                      <div className="mt-2 text-sm">
+                        <strong>Scanned Item IDs:</strong>{' '}
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {itemToScannedIds[item.skuId].map((itemId, idx) => (
+                            <span key={idx} className="bg-blue-100 px-2 py-1 rounded text-xs">
+                              {itemId}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div className="text-green-900">
@@ -395,7 +445,7 @@ const Picking = () => {
         {/* 스캔된 아이템 목록 */}
         {scannedItems.length > 0 && (
           <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-            <h3 className="font-semibold text-green-800 mb-2">Scanned Items ({scannedItems.length})</h3>
+            <h3 className="font-semibold text-green-800 mb-2">All Scanned Items ({scannedItems.length})</h3>
             <div className="flex flex-wrap gap-2">
               {scannedItems.map((item, index) => (
                 <span key={index} className="bg-green-200 px-2 py-1 rounded text-sm">
