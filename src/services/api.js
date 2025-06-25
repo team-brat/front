@@ -199,3 +199,29 @@ export const checkPickingDone = async (toteId) => {
     throw error;
   }
 };
+
+// Pick Done API 호출 (item_rfid, tote_id, box_id로 box 매칭 및 picking 완료 여부 확인)
+export const postPickDone = async (itemRfid, toteId, boxId) => {
+  const url = `${PICKING_API_BASE_URL}/pick-done`;
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        item_rfid: itemRfid,
+        tote_id: toteId,
+        box_id: boxId,
+      }),
+    });
+    if (!response.ok) {
+      throw new Error(`Pick Done API 오류: ${response.status}`);
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Pick Done API 호출 중 오류:', error);
+    throw error;
+  }
+};

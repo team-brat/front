@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { getScannerData, getBoxesByToteId, getPickBox, checkPickingDone } from '../services/api';
+import { getScannerData, getBoxesByToteId, getPickBox, checkPickingDone, postPickDone } from '../services/api';
 import ModalSuccess from '../components/Modals/Modal-Success';
 
 const Packing = () => {
@@ -103,7 +103,7 @@ const Packing = () => {
       // 항상 tote_id를 1로 설정
       const pickBoxData = await getPickBox(itemRfid, 1);
       if (pickBoxData && pickBoxData.box_id) {
-        setPackedItems([...packedItems, { rfid: itemRfid, boxId: pickBoxData.box_id }]);
+        setPackedItems([{ rfid: itemRfid, boxId: pickBoxData.box_id }]);
         setItemRfid('');
         setItemConfirmed(true);
       } else if (pickBoxData.error) {
@@ -126,12 +126,24 @@ const Packing = () => {
       return;
     }
 
+    // packedItems에 값이 없으면 동작하지 않음
+    if (!packedItems.length) {
+      alert('Please confirm an item first');
+      return;
+    }
+
     setLoadingStates(prev => ({ ...prev, done: true }));
     try {
-      const doneData = await checkPickingDone(toteRfid);
+      // packedItems의 첫 번째 값 사용 (항상 1개만 있음)
+      const { rfid: itemRfid, boxId } = packedItems[0];
+      console.log('postPickDone query:', { item_rfid: itemRfid, tote_id: 1, box_id: boxId });
+      const doneData = await postPickDone(itemRfid, 1, boxId);
       if (doneData) {
-        if (doneData.order_completed) {
-          setSuccessMessage('Picking completed successfully!');
+        if (doneData.box_id_match && !doneData.all_picking_complete) {
+          setSuccessMessage('Box matched, but picking is not complete yet.');
+          setShowSuccessModal(true);
+        } else if (doneData.box_id_match && doneData.all_picking_complete) {
+          setSuccessMessage('Picking is complete!');
           setShowSuccessModal(true);
           // Reset the form
           setToteRfid('');
@@ -140,12 +152,13 @@ const Packing = () => {
           setPackedItems([]);
           setConfirmed(false);
           setItemConfirmed(false);
-        } else {
-          alert('Picking not completed yet. Please continue with more items.');
+        } else if (!doneData.box_id_match) {
+          setSuccessMessage('Box does not match. Please try again.');
+          setShowSuccessModal(true);
         }
       }
     } catch (error) {
-      console.error('Picking Done API 오류:', error);
+      console.error('Pick Done API 오류:', error);
       alert('Failed to check picking status');
     } finally {
       setLoadingStates(prev => ({ ...prev, done: false }));
@@ -233,7 +246,7 @@ const Packing = () => {
             </div>
 
             {/* ITEM RFID 확인 시 표시되는 박스들 */}
-            {itemConfirmed && (
+            {/* {itemConfirmed && (
               <div className="flex items-center space-x-6 pt-4">
                 <div className="flex flex-col items-center space-y-2">
                   <div className="text-3xl">📦</div>
@@ -244,16 +257,21 @@ const Packing = () => {
                   <div className="text-sm text-gray-700">S</div>
                 </div>
               </div>
-            )}
+            )} */}
 
-            {/* 포장된 아이템 표시 */}
-            <div className="flex flex-wrap gap-2 pt-4">
+            {/* 포장된 아이템 표시 - 실제 박스만 박스 아이콘으로 보여주기 */}
+            <div className="flex flex-wrap gap-6 pt-4">
               {packedItems.map((item, idx) => (
                 <div
                   key={`${item.rfid}-${idx}`}
-                  className="flex items-center bg-pink-500 text-white rounded-full px-3 py-1 text-sm font-medium"
+                  className="flex flex-col items-center space-y-2"
                 >
-                  Box {item.boxId}
+                  <div className={
+                    item.boxId === 'S' ? 'text-2xl' : item.boxId === 'M' ? 'text-3xl' : 'text-4xl'
+                  }>
+                    📦
+                  </div>
+                  <div className="text-sm text-gray-700">{item.boxId}</div>
                 </div>
               ))}
             </div>
