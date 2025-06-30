@@ -23,13 +23,14 @@ const Packing = () => {
   const handleToteSearch = async () => {
     setLoadingStates(prev => ({ ...prev, toteSearch: true }));
     try {
-      const scannerData = await getScannerData();
-      if (scannerData && scannerData.id && scannerData.id.length > 0) {
-        // 가장 최근 스캔된 RFID 사용 (배열의 첫 번째 요소)
-        setToteRfid(scannerData.id[0]);
-      } else {
-        alert('No RFID data found from scanner');
-      }
+      setToteRfid('1'); // 항상 1로 하드코딩
+      // 아래 코드는 주석 처리
+      // const scannerData = await getScannerData();
+      // if (scannerData && scannerData.id && scannerData.id.length > 0) {
+      //   setToteRfid(scannerData.id[0]);
+      // } else {
+      //   alert('No RFID data found from scanner');
+      // }
     } catch (error) {
       console.error('Scanner API 오류:', error);
       alert('Failed to get scanner data');
@@ -103,8 +104,11 @@ const Packing = () => {
       // 항상 tote_id를 1로 설정
       const pickBoxData = await getPickBox(itemRfid, 1);
       if (pickBoxData && pickBoxData.box_id) {
-        setPackedItems([{ rfid: itemRfid, boxId: pickBoxData.box_id }]);
-        setItemRfid('');
+        setPackedItems([{ 
+          rfid: itemRfid, 
+          boxId: pickBoxData.box_id,
+          orderId: pickBoxData.order_id 
+        }]);
         setItemConfirmed(true);
       } else if (pickBoxData.error) {
         alert(pickBoxData.error);
@@ -145,7 +149,7 @@ const Packing = () => {
         } else if (doneData.box_id_match && doneData.all_picking_complete) {
           setSuccessMessage('Picking is complete!');
           setShowSuccessModal(true);
-          // Reset the form
+          // Reset the form (DONE 시에만 인풋값 초기화)
           setToteRfid('');
           setItemRfid('');
           setBoxes([]);
@@ -264,14 +268,29 @@ const Packing = () => {
               {packedItems.map((item, idx) => (
                 <div
                   key={`${item.rfid}-${idx}`}
-                  className="flex flex-col items-center space-y-2"
+                  className="flex items-center gap-6 p-4 hover:shadow-md transition-shadow min-w-[180px]"
                 >
-                  <div className={
-                    item.boxId === 'S' ? 'text-2xl' : item.boxId === 'M' ? 'text-3xl' : 'text-4xl'
-                  }>
-                    📦
+                  {/* 왼쪽: 박스 아이콘+크기 */}
+                  <div className="flex flex-col items-center">
+                    <div className={
+                      item.boxId === 'S' ? 'text-2xl' : item.boxId === 'M' ? 'text-3xl' : 'text-4xl'
+                    }>
+                      📦
+                    </div>
+                    <div className="text-sm font-semibold text-gray-800 mt-1">{item.boxId}</div>
                   </div>
-                  <div className="text-sm text-gray-700">{item.boxId}</div>
+                  {/* 오른쪽: 오더 넘버 버튼 */}
+                  {item.orderId && (
+                    <div className="ml-auto">
+                      <button
+                        type="button"
+                        className="px-4 py-1 bg-white border border-lime-400 text-lime-600 font-semibold rounded-full shadow-sm hover:bg-lime-50 transition-colors text-xs whitespace-nowrap"
+                        disabled
+                      >
+                        Order No.: {item.orderId}
+                      </button>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
